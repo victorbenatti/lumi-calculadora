@@ -35,11 +35,11 @@ export default function Login() {
     <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4 selection:bg-brand-brown selection:text-brand-bg">
       <Card className="w-full max-w-md bg-white border-brand-brown/10 shadow-xl rounded-3xl overflow-hidden">
         <CardHeader className="text-center space-y-4 pt-10 pb-4">
-          <div className="mx-auto w-28 h-28 bg-white rounded-2xl shadow-sm border border-brand-brown/10 flex items-center justify-center overflow-hidden">
+          <div className="mx-auto flex items-center justify-center mb-2">
             <img 
-              src="/LOGO-HD.jpeg" 
+              src="/logo-lumi-importadora.svg" 
               alt="Logo Lumi" 
-              className="w-full h-full object-contain p-2" 
+              className="h-32 sm:h-40 w-auto object-contain drop-shadow-md" 
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';

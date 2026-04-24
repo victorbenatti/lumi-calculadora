@@ -70,9 +70,9 @@ export default function Admin() {
         <header className="flex flex-col items-center justify-center mb-8 mt-4 text-center">
           {!iconError ? (
             <img 
-              src="/LOGO-HD.jpeg" 
+              src="/logo-lumi-importadora.svg" 
               alt="Logo Lumi" 
-              className="h-28 w-auto object-contain rounded-xl shadow-sm mb-4 bg-white p-2" 
+              className="h-40 w-auto object-contain drop-shadow-md mb-4" 
               onError={() => setIconError(true)}
             />
           ) : (
@@ -80,7 +80,7 @@ export default function Admin() {
               <Building2 className="h-8 w-8" />
             </div>
           )}
-          <h1 className="text-2xl font-bold tracking-tight text-brand-brown">Lumi ERP</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-brand-brown">Micro-ERP</h1>
           <p className="text-sm font-medium opacity-80 mt-1">Gestão Completa de Revenda</p>
         </header>
 

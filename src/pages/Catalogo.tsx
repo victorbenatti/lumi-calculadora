@@ -231,11 +231,11 @@ export default function Catalogo() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#fdfbf9] to-white pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 relative z-10 flex flex-col items-center">
           
-          <div className="mb-8">
+          <div className="mb-8 w-full flex justify-center">
             <img 
-              src="/LOGO-HD.jpeg" 
+              src="/logo-lumi-importadora.svg" 
               alt="Lumi Imports" 
-              className="h-28 w-auto object-contain drop-shadow-sm" 
+              className="h-48 sm:h-64 w-auto object-contain drop-shadow-md" 
             />
           </div>
           
@@ -331,7 +331,7 @@ export default function Catalogo() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
             <div className="space-y-4 flex flex-col items-center md:items-start">
-              <img src="/LOGO-HD.jpeg" alt="Lumi Imports" className="h-12 w-auto grayscale opacity-80" />
+              <img src="/logo-lumi-importadora.svg" alt="Lumi Imports" className="h-22 w-auto opacity-90 drop-shadow-sm" />
               <p className="text-sm text-brand-brown/50 font-light max-w-xs">
                 A sua boutique de alta perfumaria. Seleção exclusiva das melhores fragrâncias internacionais.
               </p>
