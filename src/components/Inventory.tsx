@@ -28,6 +28,7 @@ export function Inventory({ trips, products, refetch }: Props) {
   const [customPrice, setCustomPrice] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [category, setCategory] = useState('Unissex');
+  const [volume, setVolume] = useState('100ml');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   
@@ -134,6 +135,7 @@ export function Inventory({ trips, products, refetch }: Props) {
       familia_olfativa: familiaOlfativa,
       ocasiao: ocasiao,
       descricao_ia: descricaoIa,
+      volume: volume,
     };
 
     let error;
@@ -162,6 +164,7 @@ export function Inventory({ trips, products, refetch }: Props) {
     setPriceUSD(p.preco_usd.toString());
     setQuantity(p.estoque.toString());
     setCategory(p.categoria || 'Unissex');
+    setVolume(p.volume || '100ml');
     setExtraCost('0');
     setCustomPrice(p.preco_venda_brl ? p.preco_venda_brl.toString() : '');
     setImagePreview(p.imagem_url || '');
@@ -198,6 +201,7 @@ export function Inventory({ trips, products, refetch }: Props) {
     setImageFile(null);
     setImagePreview('');
     setCategory('Unissex');
+    setVolume('100ml');
     
     // IA Fields
     setNotasTopo('');
@@ -303,7 +307,7 @@ export function Inventory({ trips, products, refetch }: Props) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-brand-brown">Categoria</Label>
                 <select 
@@ -315,6 +319,16 @@ export function Inventory({ trips, products, refetch }: Props) {
                   <option value="Masculino">Masculino</option>
                   <option value="Feminino">Feminino</option>
                 </select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-brand-brown">Volume</Label>
+                <Input 
+                  type="text" 
+                  placeholder="Ex: 100ml, 200ml" 
+                  className="border-brand-brown/20 focus-visible:ring-brand-brown text-brand-brown h-10"
+                  value={volume}
+                  onChange={(e) => setVolume(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-brand-brown">Viagem / Cotação</Label>

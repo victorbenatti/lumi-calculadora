@@ -158,9 +158,19 @@ export default function ProdutoDetalhe() {
             
             {/* Header do Produto */}
             <div className="mb-8">
-              <p className="text-xs uppercase tracking-[0.3em] text-brand-brown/50 font-bold mb-3">
-                {product.categoria || 'Fragrância Importada'}
-              </p>
+              <div className="flex items-center gap-3 mb-3">
+                <p className="text-xs uppercase tracking-[0.3em] text-brand-brown/50 font-bold">
+                  {product.categoria || 'Fragrância Importada'}
+                </p>
+                {product.volume && (
+                  <>
+                    <span className="text-[10px] text-brand-brown/30">•</span>
+                    <p className="text-xs uppercase tracking-[0.3em] text-brand-brown/50 font-bold">
+                      {product.volume}
+                    </p>
+                  </>
+                )}
+              </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-brown leading-tight tracking-tight mb-6">
                 {product.nome}
               </h1>

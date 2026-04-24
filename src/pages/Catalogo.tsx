@@ -68,9 +68,19 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
           className="flex-grow cursor-pointer"
           onClick={() => navigate(`/produto/${product.id}`)}
         >
-          <p className="text-[10px] uppercase tracking-[0.2em] text-brand-brown/40 font-bold mb-2">
-            {product.categoria || 'Fragrância'}
-          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-brand-brown/40 font-bold">
+              {product.categoria || 'Fragrância'}
+            </p>
+            {product.volume && (
+              <>
+                <span className="text-[8px] text-brand-brown/30">•</span>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-brand-brown/40 font-bold">
+                  {product.volume}
+                </p>
+              </>
+            )}
+          </div>
           <h3 className="font-semibold text-lg text-brand-brown leading-snug group-hover:text-amber-900 transition-colors line-clamp-2">
             {product.nome}
           </h3>

@@ -54,6 +54,7 @@ export interface Database {
           familia_olfativa: string | null
           ocasiao: string | null
           descricao_ia: string | null
+          volume: string | null
         }
         Insert: {
           id?: string
@@ -72,6 +73,7 @@ export interface Database {
           familia_olfativa?: string | null
           ocasiao?: string | null
           descricao_ia?: string | null
+          volume?: string | null
         }
         Update: {
           id?: string
@@ -90,6 +92,7 @@ export interface Database {
           familia_olfativa?: string | null
           ocasiao?: string | null
           descricao_ia?: string | null
+          volume?: string | null
         }
         Relationships: [
           {
