@@ -1,13 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Instancia o cliente do Gemini usando a variável de ambiente do Vite
-// Como estamos no Vite, a chave DEVE começar com VITE_ para estar exposta ao client
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-let genAI: GoogleGenerativeAI | null = null;
-if (GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-}
 
 export interface PerfumeAIAttributes {
   notas_topo: string;
