@@ -7,7 +7,8 @@ import {
   Package,
   Plane,
   ShoppingCart,
-  LogOut
+  LogOut,
+  Store
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
@@ -58,6 +59,14 @@ export default function Admin() {
     <div className="min-h-screen p-4 sm:p-8 md:p-12">
       <div className="mx-auto max-w-5xl space-y-8 relative">
         
+        {/* Catalog Button */}
+        <div className="absolute top-0 left-0 mt-4 sm:mt-0">
+          <Button variant="outline" onClick={() => navigate('/catalogo')} className="border-brand-brown/20 text-brand-brown hover:bg-brand-brown/5 bg-white shadow-sm rounded-xl">
+            <Store className="h-4 w-4 mr-2" />
+            Voltar para o Catálogo
+          </Button>
+        </div>
+
         {/* Logout Button */}
         <div className="absolute top-0 right-0 mt-4 sm:mt-0">
           <Button variant="outline" onClick={handleLogout} className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-white shadow-sm rounded-xl">

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Store } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -32,8 +33,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4 selection:bg-brand-brown selection:text-brand-bg">
-      <Card className="w-full max-w-md bg-white border-brand-brown/10 shadow-xl rounded-3xl overflow-hidden">
+    <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-4 selection:bg-brand-brown selection:text-brand-bg relative">
+      
+      {/* Catalog Button */}
+      <div className="absolute top-4 sm:top-8 left-4 sm:left-8">
+        <Button variant="outline" onClick={() => navigate('/catalogo')} className="border-brand-brown/20 text-brand-brown hover:bg-brand-brown/5 bg-white shadow-sm rounded-xl">
+          <Store className="h-4 w-4 mr-2" />
+          Voltar para o Catálogo
+        </Button>
+      </div>
+
+      <Card className="w-full max-w-md bg-white border-brand-brown/10 shadow-xl rounded-3xl overflow-hidden mt-12 sm:mt-0">
         <CardHeader className="text-center space-y-4 pt-10 pb-4">
           <div className="mx-auto flex items-center justify-center mb-2">
             <img 
