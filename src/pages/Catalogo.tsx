@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
+import GradientText from '../components/GradientText';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -224,12 +225,20 @@ export default function Catalogo() {
             <img 
               src="/LOGO-HD.jpeg" 
               alt="Lumi Imports" 
-              className="h-28 w-auto object-contain" 
+              className="h-28 w-auto object-contain drop-shadow-sm" 
             />
           </div>
           
-          <h1 className="text-3xl md:text-5xl font-light tracking-tight text-brand-brown text-center mb-4">
-            A sua nova <span className="font-semibold">assinatura olfativa.</span>
+          <h1 className="text-3xl md:text-5xl font-light tracking-tight text-brand-brown text-center mb-4 flex flex-col items-center gap-2">
+            A sua nova
+            <GradientText
+              colors={['#3D2B1F', '#a68a74', '#3D2B1F']}
+              animationSpeed={6}
+              showBorder={false}
+              className="font-extrabold pb-2 tracking-tight"
+            >
+              assinatura olfativa.
+            </GradientText>
           </h1>
           <p className="text-brand-brown/50 text-center max-w-lg mb-12 text-sm md:text-base tracking-wide">
             Descubra fragrâncias importadas originais selecionadas criteriosamente para os gostos mais exigentes.
