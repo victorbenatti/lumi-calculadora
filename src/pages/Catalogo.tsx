@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
+import ReactGA from 'react-ga4';
 import GradientText from '../components/GradientText';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
@@ -215,6 +216,7 @@ export default function Catalogo() {
   }, []);
 
   const handleInterest = (productName: string) => {
+    ReactGA.event({ category: 'Conversão', action: 'Clique WhatsApp', label: productName });
     const text = encodeURIComponent(`Olá! Tenho interesse no perfume: ${productName}. Gostaria de garantir o meu!`);
     window.open(`https://wa.me/5519982796873?text=${text}`, '_blank');
   };

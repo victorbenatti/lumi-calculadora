@@ -4,10 +4,13 @@ import Catalogo from './pages/Catalogo';
 import Login from './pages/Login';
 import ProdutoDetalhe from './pages/ProdutoDetalhe';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { Analytics } from './components/Analytics';
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Analytics />
+      <Routes>
       <Route path="/" element={<Navigate to="/catalogo" replace />} />
       <Route path="/login" element={<Login />} />
       <Route 
@@ -21,6 +24,7 @@ function App() {
       <Route path="/catalogo" element={<Catalogo />} />
       <Route path="/produto/:id" element={<ProdutoDetalhe />} />
     </Routes>
+    </>
   );
 }
 

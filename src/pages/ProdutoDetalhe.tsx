@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
+import ReactGA from 'react-ga4';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -60,6 +61,7 @@ export default function ProdutoDetalhe() {
 
   const handleInterest = () => {
     if (!product) return;
+    ReactGA.event({ category: 'Conversão', action: 'Clique WhatsApp', label: product.nome });
     const text = encodeURIComponent(`Olá! Tenho interesse no perfume: ${product.nome}. Gostaria de garantir o meu!`);
     window.open(`https://wa.me/5519982796873?text=${text}`, '_blank');
   };
