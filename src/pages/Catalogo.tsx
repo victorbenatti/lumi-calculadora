@@ -5,7 +5,9 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Package, Search, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Wind, Heart, Droplet, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
+import { calculateInstallment } from '../utils/finance';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -13,15 +15,11 @@ const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 };
 
-const calculateInstallment = (price: number) => {
-  const totalWithInterest = price * 1.10;
-  return totalWithInterest / 12;
-};
-
 // Componente individual de Card para gerenciar o estado 'expanded'
 function ProductCard({ product, handleInterest }: { product: Product, handleInterest: (name: string) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const navigate = useNavigate();
 
   const custo = product.custo_final_brl || 0;
   const precoVenda = product.preco_venda_brl || (custo * 1.30);
@@ -32,8 +30,11 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
   const hasAI = !!product.notas_topo || !!product.descricao_ia || !!product.familia_olfativa;
 
   return (
-    <Card className="border border-brand-brown/5 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(61,43,31,0.08)] transition-all duration-500 flex flex-col h-full rounded-[2rem] group">
-      <div className="p-3">
+    <Card className="border border-brand-brown/5 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(61,43,31,0.08)] transition-all duration-500 flex flex-col h-full rounded-[2rem] group overflow-hidden">
+      <div 
+        className="p-3 cursor-pointer"
+        onClick={() => navigate(`/produto/${product.id}`)}
+      >
         <div className="aspect-[4/5] w-full bg-[#fcfbf9] rounded-[1.5rem] overflow-hidden relative flex items-center justify-center">
           {isLowStock && (
             <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
@@ -50,7 +51,7 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
                 src={product.imagem_url} 
                 alt={product.nome} 
                 onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-1000 ${
+                className={`w-full h-full object-cover transition-transform duration-1000 ${
                   imageLoaded ? 'opacity-100 scale-100 group-hover:scale-105' : 'opacity-0 scale-95'
                 }`}
               />
@@ -62,7 +63,10 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
       </div>
       
       <CardContent className="p-6 pt-3 flex flex-col flex-grow">
-        <div className="flex-grow">
+        <div 
+          className="flex-grow cursor-pointer"
+          onClick={() => navigate(`/produto/${product.id}`)}
+        >
           <p className="text-[10px] uppercase tracking-[0.2em] text-brand-brown/40 font-bold mb-2">
             {product.categoria || 'Fragrância'}
           </p>
