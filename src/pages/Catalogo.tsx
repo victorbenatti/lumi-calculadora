@@ -216,7 +216,7 @@ export default function Catalogo() {
 
   const handleInterest = (productName: string) => {
     const text = encodeURIComponent(`Olá! Tenho interesse no perfume: ${productName}. Gostaria de garantir o meu!`);
-    window.open(`https://wa.me/5599999999999?text=${text}`, '_blank');
+    window.open(`https://wa.me/5519982796873?text=${text}`, '_blank');
   };
 
   const filteredProducts = products.filter(p => {

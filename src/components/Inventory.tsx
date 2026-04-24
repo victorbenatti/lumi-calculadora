@@ -39,6 +39,7 @@ export function Inventory({ trips, products, refetch }: Props) {
   const [familiaOlfativa, setFamiliaOlfativa] = useState('');
   const [ocasiao, setOcasiao] = useState('');
   const [descricaoIa, setDescricaoIa] = useState('');
+  const [inspiradoEm, setInspiradoEm] = useState('');
   
   const [loading, setLoading] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
@@ -85,6 +86,7 @@ export function Inventory({ trips, products, refetch }: Props) {
       setFamiliaOlfativa(data.familia_olfativa);
       setOcasiao(data.ocasiao);
       setDescricaoIa(data.descricao_ia);
+      setInspiradoEm(data.inspirado_em || '');
     } catch (error: any) {
       alert(error.message || 'Erro ao gerar dados via IA.');
     } finally {
@@ -136,6 +138,7 @@ export function Inventory({ trips, products, refetch }: Props) {
       ocasiao: ocasiao,
       descricao_ia: descricaoIa,
       volume: volume,
+      inspirado_em: inspiradoEm || null,
     };
 
     let error;
@@ -176,6 +179,7 @@ export function Inventory({ trips, products, refetch }: Props) {
     setFamiliaOlfativa(p.familia_olfativa || '');
     setOcasiao(p.ocasiao || '');
     setDescricaoIa(p.descricao_ia || '');
+    setInspiradoEm(p.inspirado_em || '');
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -210,6 +214,7 @@ export function Inventory({ trips, products, refetch }: Props) {
     setFamiliaOlfativa('');
     setOcasiao('');
     setDescricaoIa('');
+    setInspiradoEm('');
   };
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -301,6 +306,10 @@ export function Inventory({ trips, products, refetch }: Props) {
                         className="w-full text-sm p-2 rounded-md border border-purple-200 bg-white focus:outline-none focus:ring-1 focus:ring-purple-400"
                         rows={3}
                       />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-brand-brown/60">Inspirado Em (Contratipo/Árabe) - Opcional</Label>
+                      <Input value={inspiradoEm} onChange={(e) => setInspiradoEm(e.target.value)} placeholder="Ex: Creed Aventus" className="h-8 text-sm" />
                     </div>
                   </>
                 )}

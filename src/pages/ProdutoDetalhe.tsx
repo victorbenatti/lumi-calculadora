@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
-import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 
@@ -61,7 +61,7 @@ export default function ProdutoDetalhe() {
   const handleInterest = () => {
     if (!product) return;
     const text = encodeURIComponent(`Olá! Tenho interesse no perfume: ${product.nome}. Gostaria de garantir o meu!`);
-    window.open(`https://wa.me/5599999999999?text=${text}`, '_blank');
+    window.open(`https://wa.me/5519982796873?text=${text}`, '_blank');
   };
 
   if (loading) {
@@ -171,9 +171,18 @@ export default function ProdutoDetalhe() {
                   </>
                 )}
               </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-brown leading-tight tracking-tight mb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-brown leading-tight tracking-tight mb-4">
                 {product.nome}
               </h1>
+
+              {product.inspirado_em && (
+                <div className="flex items-center gap-2 mb-6 bg-[#fcfbf9] border border-brand-brown/10 px-4 py-3 rounded-2xl w-max max-w-full shadow-sm">
+                  <Sparkles className="w-4 h-4 text-[#8c6b52] shrink-0" />
+                  <p className="text-sm italic text-brand-brown/80 font-medium">
+                    Referência Olfativa: Inspirado no consagrado <span className="font-bold text-brand-brown">{product.inspirado_em}</span>
+                  </p>
+                </div>
+              )}
               
               {/* Preço e Parcelamento */}
               <div className="flex flex-col gap-2">
