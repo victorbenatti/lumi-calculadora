@@ -32,24 +32,24 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
   const hasAI = !!product.notas_topo || !!product.descricao_ia || !!product.familia_olfativa;
 
   return (
-    <Card className="border border-brand-brown/5 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(61,43,31,0.08)] transition-all duration-500 flex flex-col h-full rounded-[2rem] group overflow-hidden">
+    <Card className="border border-brand-brown/5 bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_25px_rgb(61,43,31,0.08)] transition-all duration-500 flex flex-col h-full rounded-2xl group overflow-hidden">
       <div 
-        className="p-3 cursor-pointer"
+        className="p-1.5 cursor-pointer"
         onClick={() => navigate(`/produto/${product.id}`)}
       >
-        <div className="aspect-[4/5] w-full bg-[#fcfbf9] rounded-[1.5rem] overflow-hidden relative flex items-center justify-center">
+        <div className="aspect-[3/4] w-full bg-[#fcfbf9] rounded-xl overflow-hidden relative flex items-center justify-center">
           {isLowStock && (
-            <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
-              <span className="text-[10px] font-bold tracking-widest uppercase text-red-800">
+            <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
+              <span className="text-[8px] font-bold tracking-widest uppercase text-red-800">
                 Últimas un.
               </span>
             </div>
           )}
           {product.mais_vendido && (
-            <div className="absolute top-4 left-4 z-10 bg-emerald-600/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
-              <Flame className="w-3 h-3 text-white" />
-              <span className="text-[10px] font-bold tracking-widest uppercase text-white">
-                Mais Vendido
+            <div className="absolute top-2 left-2 z-10 bg-emerald-600/95 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+              <Flame className="w-2.5 h-2.5 text-white" />
+              <span className="text-[8px] font-bold tracking-wider uppercase text-white">
+                Top
               </span>
             </div>
           )}
@@ -61,121 +61,115 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
                 src={product.imagem_url} 
                 alt={product.nome} 
                 onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-cover transition-transform duration-1000 ${
+                className={`w-full h-full object-cover transition-transform duration-700 ${
                   imageLoaded ? 'opacity-100 scale-100 group-hover:scale-105' : 'opacity-0 scale-95'
                 }`}
               />
             </>
           ) : (
-            <Package className="h-16 w-16 text-brand-brown/10" />
+            <Package className="h-10 w-10 text-brand-brown/10" />
           )}
         </div>
       </div>
       
-      <CardContent className="p-6 pt-3 flex flex-col flex-grow">
+      <CardContent className="px-3 pb-3 pt-2 flex flex-col flex-grow">
         <div 
           className="flex-grow cursor-pointer"
           onClick={() => navigate(`/produto/${product.id}`)}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-brand-brown/40 font-bold">
+          <div className="flex items-center gap-1.5 mb-1">
+            <p className="text-[9px] uppercase tracking-[0.15em] text-brand-brown/40 font-bold">
               {product.categoria || 'Fragrância'}
             </p>
             {product.volume && (
               <>
-                <span className="text-[8px] text-brand-brown/30">•</span>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-brand-brown/40 font-bold">
+                <span className="text-[7px] text-brand-brown/25">•</span>
+                <p className="text-[9px] uppercase tracking-[0.15em] text-brand-brown/40 font-bold">
                   {product.volume}
                 </p>
               </>
             )}
           </div>
-          <h3 className="font-semibold text-lg text-brand-brown leading-snug group-hover:text-amber-900 transition-colors line-clamp-2">
+          <h3 className="font-semibold text-sm text-brand-brown leading-snug group-hover:text-amber-900 transition-colors line-clamp-2">
             {product.nome}
           </h3>
         </div>
 
         {hasAI && (
-          <div className="mt-4 mb-2">
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)} 
-              className="flex items-center justify-between w-full text-xs text-brand-brown/60 hover:text-brand-brown font-medium py-2.5 border-y border-brand-brown/5 transition-colors focus:outline-none"
-            >
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> Descobrir Fragrância
-              </span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-            </button>
-            
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="py-4 space-y-4">
-                    <div className="flex flex-wrap gap-2">
-                      {product.familia_olfativa && (
-                        <span className="bg-brand-brown/5 text-brand-brown px-2 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase flex items-center gap-1">
-                          <Star className="w-3 h-3" /> {product.familia_olfativa}
-                        </span>
-                      )}
-                      {product.ocasiao && (
-                        <span className="bg-brand-brown/5 text-brand-brown px-2 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase">
-                          {product.ocasiao}
-                        </span>
-                      )}
-                    </div>
-                    
-                    {product.descricao_ia && (
-                      <p className="text-xs text-brand-brown/70 italic leading-relaxed border-l-2 border-brand-brown/10 pl-3">
-                        "{product.descricao_ia}"
-                      </p>
-                    )}
-                    
-                    {(product.notas_topo || product.notas_coracao || product.notas_fundo) && (
-                      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-brand-brown/5">
-                        <div className="flex flex-col items-center text-center gap-1">
-                          <Wind className="w-4 h-4 text-brand-brown/40" />
-                          <span className="text-[9px] uppercase tracking-widest text-brand-brown/50 font-bold">Topo</span>
-                          <span className="text-xs text-brand-brown leading-tight">{product.notas_topo || '-'}</span>
-                        </div>
-                        <div className="flex flex-col items-center text-center gap-1">
-                          <Heart className="w-4 h-4 text-brand-brown/40" />
-                          <span className="text-[9px] uppercase tracking-widest text-brand-brown/50 font-bold">Coração</span>
-                          <span className="text-xs text-brand-brown leading-tight">{product.notas_coracao || '-'}</span>
-                        </div>
-                        <div className="flex flex-col items-center text-center gap-1">
-                          <Droplet className="w-4 h-4 text-brand-brown/40" />
-                          <span className="text-[9px] uppercase tracking-widest text-brand-brown/50 font-bold">Fundo</span>
-                          <span className="text-xs text-brand-brown leading-tight">{product.notas_fundo || '-'}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)} 
+            className="flex items-center gap-1 mt-2 text-[10px] text-brand-brown/40 hover:text-brand-brown/70 font-medium transition-colors focus:outline-none"
+          >
+            <Sparkles className="w-3 h-3" />
+            <span>{isExpanded ? 'Ocultar' : 'Detalhes'}</span>
+            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+          </button>
         )}
+
+        <AnimatePresence>
+          {isExpanded && hasAI && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-2 pb-1 space-y-2 border-t border-brand-brown/5 mt-2">
+                <div className="flex flex-wrap gap-1">
+                  {product.familia_olfativa && (
+                    <span className="bg-brand-brown/5 text-brand-brown px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase flex items-center gap-0.5">
+                      <Star className="w-2.5 h-2.5" /> {product.familia_olfativa}
+                    </span>
+                  )}
+                  {product.ocasiao && (
+                    <span className="bg-brand-brown/5 text-brand-brown px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase">
+                      {product.ocasiao}
+                    </span>
+                  )}
+                </div>
+                
+                {product.descricao_ia && (
+                  <p className="text-[10px] text-brand-brown/60 italic leading-relaxed border-l-2 border-brand-brown/10 pl-2 line-clamp-3">
+                    "{product.descricao_ia}"
+                  </p>
+                )}
+                
+                {(product.notas_topo || product.notas_coracao || product.notas_fundo) && (
+                  <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-brand-brown/5">
+                    <div className="flex flex-col items-center text-center">
+                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Topo</span>
+                      <span className="text-[10px] text-brand-brown leading-tight">{product.notas_topo || '-'}</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Coração</span>
+                      <span className="text-[10px] text-brand-brown leading-tight">{product.notas_coracao || '-'}</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Fundo</span>
+                      <span className="text-[10px] text-brand-brown leading-tight">{product.notas_fundo || '-'}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         
-        <div className="mt-4 flex flex-col gap-1.5">
-          <span className="text-2xl font-bold text-brand-brown tracking-tight">
+        <div className="mt-2 flex flex-col gap-0.5">
+          <span className="text-lg font-bold text-brand-brown tracking-tight">
             {formatBRL(precoVenda)}
           </span>
-          <div className="flex items-center gap-1.5 text-xs text-brand-brown/60 font-medium">
-            <CreditCard className="w-3.5 h-3.5 opacity-70" />
-            <span>em até 12x de {formatBRL(installmentValue)}</span>
+          <div className="flex items-center gap-1 text-[10px] text-brand-brown/50 font-medium">
+            <CreditCard className="w-3 h-3 opacity-60" />
+            <span>12x de {formatBRL(installmentValue)}</span>
           </div>
         </div>
         
         <Button 
           onClick={() => handleInterest(product.nome)}
-          className="w-full mt-6 bg-brand-brown hover:bg-[#2A1D15] text-white rounded-2xl py-6 font-medium tracking-wide flex items-center justify-center gap-2 shadow-md hover:shadow-xl transition-all duration-300"
+          className="w-full mt-3 bg-brand-brown hover:bg-[#2A1D15] text-white rounded-xl py-2.5 text-xs font-medium tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all duration-300"
         >
-          <ShoppingBag className="w-4 h-4" />
+          <ShoppingBag className="w-3.5 h-3.5" />
           Garantir o meu
         </Button>
       </CardContent>
@@ -436,18 +430,15 @@ export default function Catalogo() {
         {/* Main Content Area */}
         <div className="flex-1 min-w-0">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="flex flex-col h-full bg-white rounded-[2rem] p-4 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.03)] border border-brand-brown/5">
-                  <div className="aspect-[4/5] bg-stone-100/80 rounded-2xl animate-pulse w-full mb-6"></div>
-                  <div className="px-2 flex flex-col gap-3">
-                    <div className="h-3 w-1/4 bg-stone-100 animate-pulse rounded-full"></div>
-                    <div className="h-5 w-3/4 bg-stone-100 animate-pulse rounded-full"></div>
-                    <div className="mt-4 flex flex-col gap-2">
-                      <div className="h-8 w-1/2 bg-stone-100 animate-pulse rounded-full"></div>
-                      <div className="h-3 w-2/3 bg-stone-100 animate-pulse rounded-full"></div>
-                    </div>
-                    <div className="h-14 w-full bg-stone-100 animate-pulse rounded-2xl mt-4"></div>
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex flex-col h-full bg-white rounded-2xl p-1.5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-brand-brown/5">
+                  <div className="aspect-[3/4] bg-stone-100/80 rounded-xl animate-pulse w-full mb-2"></div>
+                  <div className="px-2 pb-2 flex flex-col gap-2">
+                    <div className="h-2.5 w-1/3 bg-stone-100 animate-pulse rounded-full"></div>
+                    <div className="h-3.5 w-4/5 bg-stone-100 animate-pulse rounded-full"></div>
+                    <div className="h-5 w-1/2 bg-stone-100 animate-pulse rounded-full mt-1"></div>
+                    <div className="h-8 w-full bg-stone-100 animate-pulse rounded-xl mt-1"></div>
                   </div>
                 </div>
               ))}
@@ -472,18 +463,18 @@ export default function Catalogo() {
               {/* Seção Mais Vendidos - Apenas se Favoritos estiverem nos resultados filtrados */}
               {filteredProducts.filter(p => p.mais_vendido).length > 0 && (
                 <section>
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-sm">
-                      <Flame className="w-5 h-5 text-emerald-600" />
+                  <div className="flex items-center gap-2.5 mb-5">
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
+                      <Flame className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-semibold text-brand-brown tracking-tight">Os Favoritos da Lumi</h2>
-                      <p className="text-brand-brown/50 text-sm">As fragrâncias filtradas mais desejadas.</p>
+                      <h2 className="text-lg font-semibold text-brand-brown tracking-tight">Os Favoritos da Lumi</h2>
+                      <p className="text-brand-brown/50 text-xs">As fragrâncias mais desejadas.</p>
                     </div>
                   </div>
-                  <div className="flex overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 gap-6 snap-x snap-mandatory scrollbar-hide">
+                  <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 gap-3 sm:gap-4 snap-x snap-mandatory scrollbar-hide">
                     {filteredProducts.filter(p => p.mais_vendido).map(product => (
-                      <div key={`fav-${product.id}`} className="min-w-[280px] sm:min-w-[320px] max-w-[320px] snap-center shrink-0">
+                      <div key={`fav-${product.id}`} className="min-w-[160px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
                         <ProductCard product={product} handleInterest={handleInterest} />
                       </div>
                     ))}
@@ -493,15 +484,15 @@ export default function Catalogo() {
 
               {/* Catálogo Completo */}
               <section>
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-xl font-medium text-brand-brown tracking-tight">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-base font-medium text-brand-brown tracking-tight">
                     Catálogo Completo
                   </h2>
-                  <span className="text-sm text-brand-brown/50 font-medium">
+                  <span className="text-xs text-brand-brown/50 font-medium">
                     {filteredProducts.length} {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                   {filteredProducts.map((product) => (
                     <ProductCard key={`all-${product.id}`} product={product} handleInterest={handleInterest} />
                   ))}
