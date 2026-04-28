@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Package, Search, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Wind, Heart, Droplet, Star, Flame, Filter, DollarSign, Globe, X } from 'lucide-react';
+import { Package, Search, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Wind, Heart, Droplet, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
@@ -505,7 +505,7 @@ export default function Catalogo() {
 
       <footer className="bg-white border-t border-brand-brown/5 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
             <div className="space-y-4 flex flex-col items-center md:items-start">
               <img src="/logo-lumi-importadora.svg" alt="Lumi Imports" className="h-22 w-auto opacity-90 drop-shadow-sm" />
               <p className="text-sm text-brand-brown/50 font-light max-w-xs">
@@ -521,8 +521,23 @@ export default function Catalogo() {
               </ul>
             </div>
             <div className="space-y-4">
-              <h4 className="text-sm font-bold text-brand-brown uppercase tracking-wider text-center md:text-right">Garantia Lumi</h4>
-              <div className="flex flex-col gap-3 items-center md:items-end text-sm text-brand-brown/60 font-light">
+              <h4 className="text-sm font-bold text-brand-brown uppercase tracking-wider">Contato</h4>
+              <ul className="space-y-3 text-sm text-brand-brown/60 font-light">
+                <li className="flex items-center gap-2 justify-center md:justify-start">
+                  <Phone className="w-4 h-4 text-brand-brown/40" />
+                  <span>(19) 98279-6873</span>
+                </li>
+                <li className="flex items-center gap-2 justify-center md:justify-start">
+                  <Instagram className="w-4 h-4 text-brand-brown/40" />
+                  <a href="https://instagram.com/lumi.importadora" target="_blank" rel="noopener noreferrer" className="hover:text-brand-brown transition-colors">
+                    @lumi.importadora
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold text-brand-brown uppercase tracking-wider text-center md:text-left">Garantia Lumi</h4>
+              <div className="flex flex-col gap-3 items-center md:items-start text-sm text-brand-brown/60 font-light">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600/70" />
                   <span>Produtos 100% Originais</span>
