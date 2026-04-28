@@ -321,17 +321,17 @@ export default function Catalogo() {
     <div className="min-h-screen bg-brand-bg font-sans selection:bg-brand-brown selection:text-brand-bg flex flex-col">
       <section className="bg-white border-b border-brand-brown/5 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-[#fdfbf9] to-white pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8 relative z-10 flex flex-col items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 relative z-10 flex flex-col items-center">
           
-          <div className="mb-8 w-full flex justify-center">
+          <div className="mb-1 w-full flex justify-center">
             <img 
               src="/logo-lumi-importadora.svg" 
               alt="Lumi Imports" 
-              className="h-48 sm:h-64 w-auto object-contain drop-shadow-md" 
+              className="h-48 sm:h-48 w-auto object-contain drop-shadow-sm" 
             />
           </div>
           
-          <h1 className="text-3xl md:text-5xl font-light tracking-tight text-brand-brown text-center mb-4 flex flex-col items-center gap-2">
+          <h1 className="text-2xl md:text-4xl font-light tracking-tight text-brand-brown text-center mb-0 flex flex-col items-center gap-0">
             A sua nova
             <GradientText
               colors={['#3D2B1F', '#a68a74', '#3D2B1F']}
@@ -342,8 +342,8 @@ export default function Catalogo() {
               assinatura olfativa.
             </GradientText>
           </h1>
-          <p className="text-brand-brown/50 text-center max-w-lg mb-12 text-sm md:text-base tracking-wide">
-            Descubra fragrâncias importadas originais selecionadas criteriosamente para os gostos mais exigentes.
+          <p className="text-brand-brown/50 text-center max-w-lg mb-4 text-xs md:text-sm tracking-wide">
+            Descubra fragrâncias importadas originais selecionadas criteriosamente.
           </p>
 
           <div className="w-full max-w-2xl relative group mb-4 flex gap-3">
