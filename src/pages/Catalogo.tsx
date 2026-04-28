@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Package, Search, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Wind, Heart, Droplet, Star, Flame } from 'lucide-react';
+import { Package, Search, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Wind, Heart, Droplet, Star, Flame, Filter, DollarSign, Globe, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
@@ -185,9 +185,15 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
 
 export default function Catalogo() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filter, setFilter] = useState('Todos');
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
+  const [filters, setFilters] = useState({
+    search: '',
+    categoria: 'Todos',
+    tipo: 'Todos',
+    precoFaixa: 'Todos'
+  });
 
   const fetchCatalog = async () => {
     try {
@@ -230,16 +236,98 @@ export default function Catalogo() {
   };
 
   const filteredProducts = products.filter(p => {
-    const matchesFilter = filter === 'Todos' || p.categoria === filter;
-    const matchesSearch = p.nome.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
+    const matchesSearch = p.nome.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesCategory = filters.categoria === 'Todos' || p.categoria === filters.categoria;
+    const matchesTipo = filters.tipo === 'Todos' || p.tipo === filters.tipo;
+    
+    let matchesPrice = true;
+    const preco = p.preco_venda_brl || (p.custo_final_brl * 1.30);
+    if (filters.precoFaixa === 'Até R$300') matchesPrice = preco <= 300;
+    if (filters.precoFaixa === 'R$300 - R$600') matchesPrice = preco > 300 && preco <= 600;
+    if (filters.precoFaixa === 'Acima de R$600') matchesPrice = preco > 600;
+
+    return matchesSearch && matchesCategory && matchesTipo && matchesPrice;
   });
+
+  const hasActiveFilters = filters.categoria !== 'Todos' || filters.tipo !== 'Todos' || filters.precoFaixa !== 'Todos';
+
+  const clearFilters = () => setFilters({ ...filters, categoria: 'Todos', tipo: 'Todos', precoFaixa: 'Todos' });
+
+  const setFilterValue = (key: keyof typeof filters, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const filterContent = (
+    <div className="space-y-8">
+      {hasActiveFilters && (
+        <Button 
+          variant="outline" 
+          onClick={clearFilters}
+          className="w-full border-brand-brown/20 text-brand-brown/70 hover:bg-stone-50 text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 rounded-xl h-10"
+        >
+          <X className="w-3 h-3" /> Limpar Filtros
+        </Button>
+      )}
+      
+      <div className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
+          <Package className="w-3.5 h-3.5" /> Categoria
+        </h3>
+        <div className="flex flex-col gap-3">
+          {['Todos', 'Masculino', 'Feminino', 'Unissex'].map(cat => (
+            <button key={cat} onClick={() => setFilterValue('categoria', cat)} className="flex items-center gap-3 cursor-pointer group text-left">
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${filters.categoria === cat ? 'border-brand-brown bg-brand-brown' : 'border-brand-brown/30 group-hover:border-brand-brown/60'}`}>
+                {filters.categoria === cat && <div className="w-1.5 h-1.5 bg-brand-bg rounded-full" />}
+              </div>
+              <span className={`text-sm ${filters.categoria === cat ? 'font-semibold text-brand-brown' : 'text-brand-brown/70 group-hover:text-brand-brown'}`}>{cat}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="h-px bg-brand-brown/5 w-full"></div>
+
+      <div className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
+          <Globe className="w-3.5 h-3.5" /> Origem
+        </h3>
+        <div className="flex flex-col gap-3">
+          {['Todos', 'Importado', 'Árabe'].map(tipo => (
+            <button key={tipo} onClick={() => setFilterValue('tipo', tipo)} className="flex items-center gap-3 cursor-pointer group text-left">
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${filters.tipo === tipo ? 'border-brand-brown bg-brand-brown' : 'border-brand-brown/30 group-hover:border-brand-brown/60'}`}>
+                {filters.tipo === tipo && <div className="w-1.5 h-1.5 bg-brand-bg rounded-full" />}
+              </div>
+              <span className={`text-sm ${filters.tipo === tipo ? 'font-semibold text-brand-brown' : 'text-brand-brown/70 group-hover:text-brand-brown'}`}>{tipo}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="h-px bg-brand-brown/5 w-full"></div>
+
+      <div className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
+          <DollarSign className="w-3.5 h-3.5" /> Faixa de Preço
+        </h3>
+        <div className="flex flex-col gap-3">
+          {['Todos', 'Até R$300', 'R$300 - R$600', 'Acima de R$600'].map(faixa => (
+            <button key={faixa} onClick={() => setFilterValue('precoFaixa', faixa)} className="flex items-center gap-3 cursor-pointer group text-left">
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${filters.precoFaixa === faixa ? 'border-brand-brown bg-brand-brown' : 'border-brand-brown/30 group-hover:border-brand-brown/60'}`}>
+                {filters.precoFaixa === faixa && <div className="w-1.5 h-1.5 bg-brand-bg rounded-full" />}
+              </div>
+              <span className={`text-sm ${filters.precoFaixa === faixa ? 'font-semibold text-brand-brown' : 'text-brand-brown/70 group-hover:text-brand-brown'}`}>{faixa}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-brand-bg font-sans selection:bg-brand-brown selection:text-brand-bg flex flex-col">
       <section className="bg-white border-b border-brand-brown/5 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-[#fdfbf9] to-white pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 relative z-10 flex flex-col items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8 relative z-10 flex flex-col items-center">
           
           <div className="mb-8 w-full flex justify-center">
             <img 
@@ -264,105 +352,164 @@ export default function Catalogo() {
             Descubra fragrâncias importadas originais selecionadas criteriosamente para os gostos mais exigentes.
           </p>
 
-          <div className="w-full max-w-2xl relative group mb-8">
-            <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-brand-brown/30 group-focus-within:text-brand-brown transition-colors" />
+          <div className="w-full max-w-2xl relative group mb-4 flex gap-3">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-brand-brown/30 group-focus-within:text-brand-brown transition-colors" />
+              </div>
+              <Input
+                type="text"
+                placeholder="Buscar fragrância ou marca..."
+                value={filters.search}
+                onChange={(e) => setFilterValue('search', e.target.value)}
+                className="pl-14 py-8 w-full text-lg rounded-full border-brand-brown/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:ring-1 focus-visible:ring-brand-brown/20 focus-visible:border-brand-brown/30 bg-white transition-all text-brand-brown placeholder:text-brand-brown/30 placeholder:font-light"
+              />
             </div>
-            <Input
-              type="text"
-              placeholder="Buscar fragrância ou marca..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-14 py-8 w-full text-lg rounded-full border-brand-brown/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:ring-1 focus-visible:ring-brand-brown/20 focus-visible:border-brand-brown/30 bg-white transition-all text-brand-brown placeholder:text-brand-brown/30 placeholder:font-light"
-            />
-          </div>
-
-          <div className="w-full overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 flex sm:justify-center gap-3">
-            {['Todos', 'Masculino', 'Feminino', 'Unissex'].map(category => (
-              <button
-                key={category}
-                onClick={() => setFilter(category)}
-                className={`whitespace-nowrap rounded-full px-7 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
-                  filter === category 
-                    ? 'bg-brand-brown text-white shadow-md' 
-                    : 'bg-stone-50 text-brand-brown/60 hover:bg-stone-100 hover:text-brand-brown'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
+            
+            <Button 
+              onClick={() => setIsMobileFiltersOpen(true)}
+              className="md:hidden h-16 w-16 px-0 rounded-full bg-white border border-brand-brown/10 text-brand-brown shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:bg-stone-50 flex items-center justify-center relative"
+            >
+              <Filter className="w-5 h-5" />
+              {hasActiveFilters && (
+                <span className="absolute top-4 right-4 w-2 h-2 bg-emerald-500 rounded-full"></span>
+              )}
+            </Button>
           </div>
         </div>
       </section>
 
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="flex flex-col h-full bg-white rounded-[2rem] p-4 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.03)] border border-brand-brown/5">
-                <div className="aspect-[4/5] bg-stone-100/80 rounded-2xl animate-pulse w-full mb-6"></div>
-                <div className="px-2 flex flex-col gap-3">
-                  <div className="h-3 w-1/4 bg-stone-100 animate-pulse rounded-full"></div>
-                  <div className="h-5 w-3/4 bg-stone-100 animate-pulse rounded-full"></div>
-                  <div className="mt-4 flex flex-col gap-2">
-                    <div className="h-8 w-1/2 bg-stone-100 animate-pulse rounded-full"></div>
-                    <div className="h-3 w-2/3 bg-stone-100 animate-pulse rounded-full"></div>
-                  </div>
-                  <div className="h-14 w-full bg-stone-100 animate-pulse rounded-2xl mt-4"></div>
-                </div>
-              </div>
-            ))}
+      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 lg:gap-12">
+        
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:block w-56 lg:w-64 shrink-0">
+          <div className="sticky top-8 bg-white p-6 rounded-[2rem] border border-brand-brown/5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.03)]">
+            <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2 mb-6">
+              <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
+            </h2>
+            {filterContent}
           </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-24 h-24 bg-stone-50 rounded-full flex items-center justify-center mb-6">
-              <Package className="h-10 w-10 text-brand-brown/20" />
-            </div>
-            <h3 className="text-2xl font-light text-brand-brown mb-2">Nenhuma fragrância encontrada</h3>
-            <p className="text-brand-brown/50 max-w-md font-light">Não localizamos nenhum produto com esses termos no momento.</p>
-            <Button 
-              variant="outline" 
-              onClick={() => { setSearchTerm(''); setFilter('Todos'); }}
-              className="mt-8 rounded-full px-8 border-brand-brown/20 text-brand-brown hover:bg-stone-50"
-            >
-              Ver todo o catálogo
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-16">
-            {/* Seção Mais Vendidos */}
-            {filteredProducts.filter(p => p.mais_vendido).length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
-                    <Flame className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-semibold text-brand-brown tracking-tight">Os Favoritos da Lumi</h2>
-                    <p className="text-brand-brown/50 text-sm">As fragrâncias mais desejadas do momento.</p>
-                  </div>
+        </aside>
+
+        {/* Mobile Filters Drawer */}
+        <AnimatePresence>
+          {isMobileFiltersOpen && (
+            <>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsMobileFiltersOpen(false)}
+                className="fixed inset-0 bg-brand-brown/40 backdrop-blur-sm z-50 md:hidden"
+              />
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white shadow-2xl z-50 md:hidden flex flex-col"
+              >
+                <div className="flex items-center justify-between p-6 border-b border-brand-brown/10 bg-[#fdfbf9]">
+                  <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2">
+                    <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
+                  </h2>
+                  <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 -mr-2 bg-white rounded-full shadow-sm border border-brand-brown/5 text-brand-brown/50 hover:text-brand-brown">
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-                <div className="flex overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 gap-6 snap-x snap-mandatory scrollbar-hide">
-                  {filteredProducts.filter(p => p.mais_vendido).map(product => (
-                    <div key={`fav-${product.id}`} className="min-w-[280px] sm:min-w-[320px] max-w-[320px] snap-center shrink-0">
-                      <ProductCard product={product} handleInterest={handleInterest} />
+                <div className="p-6 overflow-y-auto flex-1">
+                  {filterContent}
+                </div>
+                <div className="p-6 border-t border-brand-brown/10 bg-[#fdfbf9]">
+                  <Button 
+                    onClick={() => setIsMobileFiltersOpen(false)}
+                    className="w-full bg-brand-brown hover:bg-[#2A1D15] text-white py-6 rounded-2xl text-base font-medium shadow-md"
+                  >
+                    Ver Resultados ({filteredProducts.length})
+                  </Button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0">
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex flex-col h-full bg-white rounded-[2rem] p-4 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.03)] border border-brand-brown/5">
+                  <div className="aspect-[4/5] bg-stone-100/80 rounded-2xl animate-pulse w-full mb-6"></div>
+                  <div className="px-2 flex flex-col gap-3">
+                    <div className="h-3 w-1/4 bg-stone-100 animate-pulse rounded-full"></div>
+                    <div className="h-5 w-3/4 bg-stone-100 animate-pulse rounded-full"></div>
+                    <div className="mt-4 flex flex-col gap-2">
+                      <div className="h-8 w-1/2 bg-stone-100 animate-pulse rounded-full"></div>
+                      <div className="h-3 w-2/3 bg-stone-100 animate-pulse rounded-full"></div>
                     </div>
+                    <div className="h-14 w-full bg-stone-100 animate-pulse rounded-2xl mt-4"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-[2rem] border border-brand-brown/5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.02)] h-full">
+              <div className="w-24 h-24 bg-stone-50 rounded-full flex items-center justify-center mb-6">
+                <Package className="h-10 w-10 text-brand-brown/20" />
+              </div>
+              <h3 className="text-2xl font-light text-brand-brown mb-2">Nenhuma fragrância encontrada</h3>
+              <p className="text-brand-brown/50 max-w-md font-light">Não localizamos nenhum produto com esses filtros. Tente remover alguns critérios.</p>
+              <Button 
+                variant="outline" 
+                onClick={clearFilters}
+                className="mt-8 rounded-full px-8 border-brand-brown/20 text-brand-brown hover:bg-stone-50"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-16">
+              {/* Seção Mais Vendidos - Apenas se Favoritos estiverem nos resultados filtrados */}
+              {filteredProducts.filter(p => p.mais_vendido).length > 0 && (
+                <section>
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-sm">
+                      <Flame className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-semibold text-brand-brown tracking-tight">Os Favoritos da Lumi</h2>
+                      <p className="text-brand-brown/50 text-sm">As fragrâncias filtradas mais desejadas.</p>
+                    </div>
+                  </div>
+                  <div className="flex overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 gap-6 snap-x snap-mandatory scrollbar-hide">
+                    {filteredProducts.filter(p => p.mais_vendido).map(product => (
+                      <div key={`fav-${product.id}`} className="min-w-[280px] sm:min-w-[320px] max-w-[320px] snap-center shrink-0">
+                        <ProductCard product={product} handleInterest={handleInterest} />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Catálogo Completo */}
+              <section>
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-medium text-brand-brown tracking-tight">
+                    Catálogo Completo
+                  </h2>
+                  <span className="text-sm text-brand-brown/50 font-medium">
+                    {filteredProducts.length} {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={`all-${product.id}`} product={product} handleInterest={handleInterest} />
                   ))}
                 </div>
               </section>
-            )}
-
-            {/* Catálogo Completo */}
-            <section>
-              <h2 className="text-xl font-medium text-brand-brown tracking-tight mb-8">Catálogo Completo</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
-                {filteredProducts.map((product) => (
-                  <ProductCard key={`all-${product.id}`} product={product} handleInterest={handleInterest} />
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </main>
 
       <footer className="bg-white border-t border-brand-brown/5 mt-auto">

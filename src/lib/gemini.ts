@@ -9,6 +9,7 @@ export interface PerfumeAIAttributes {
   ocasiao: string;
   descricao_ia: string;
   inspirado_em: string | null;
+  tipo: string;
 }
 
 export async function enrichPerfumeData(nomePerfume: string): Promise<PerfumeAIAttributes> {
@@ -27,7 +28,7 @@ export async function enrichPerfumeData(nomePerfume: string): Promise<PerfumeAIA
     }
   });
 
-  const prompt = `Atue como um expert em perfumaria internacional e analise a fragrância '${nomePerfume}'. Retorne estritamente um objeto JSON com as seguintes chaves exatas (e nada além disso): "notas_topo", "notas_coracao", "notas_fundo", "familia_olfativa", "ocasiao" (curta, ex: Encontros noturnos) e "descricao_ia" (parágrafo comercial sedutor focado em vendas). Além disso, retorne uma chave "inspirado_em". Se o perfume for árabe ou um contratipo conhecido, diga o nome exato do perfume de nicho ou designer no qual ele foi inspirado (Ex: 'Creed Aventus', 'Velvet Iris da Pana Dora'). Se o perfume for uma criação original e não for inspirado em outro, retorne null nesta chave. Não use markdown.`;
+  const prompt = `Atue como um expert em perfumaria internacional e analise a fragrância '${nomePerfume}'. Retorne estritamente um objeto JSON com as seguintes chaves exatas (e nada além disso): "notas_topo", "notas_coracao", "notas_fundo", "familia_olfativa", "ocasiao" (curta, ex: Encontros noturnos) e "descricao_ia" (parágrafo comercial sedutor focado em vendas). Além disso, retorne uma chave "inspirado_em". Se o perfume for árabe ou um contratipo conhecido, diga o nome exato do perfume de nicho ou designer no qual ele foi inspirado (Ex: 'Creed Aventus', 'Velvet Iris da Pana Dora'). Se o perfume for uma criação original e não for inspirado em outro, retorne null nesta chave. Finalmente, retorne uma chave "tipo". Instrução para "tipo": classifique como "Árabe" se for de marcas como Lattafa, Afnan, Maison Alhambra, Armaf, etc. E classifique como "Importado" se for de marcas de designer ou nicho tradicionais (Dior, Chanel, Tom Ford, etc). Não use markdown.`;
 
   try {
     const result = await model.generateContent(prompt);
@@ -49,6 +50,7 @@ export async function enrichPerfumeData(nomePerfume: string): Promise<PerfumeAIA
       ocasiao: parsedData.ocasiao || 'Não informado',
       descricao_ia: parsedData.descricao_ia || 'Descrição indisponível no momento.',
       inspirado_em: parsedData.inspirado_em || null,
+      tipo: parsedData.tipo || 'Importado',
     };
   } catch (error: any) {
     console.error('Erro ao processar dados da IA:', error);

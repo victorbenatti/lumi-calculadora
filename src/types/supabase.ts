@@ -57,6 +57,7 @@ export interface Database {
           volume: string | null
           inspirado_em: string | null
           mais_vendido: boolean | null
+          tipo: string | null
         }
         Insert: {
           id?: string
@@ -78,6 +79,7 @@ export interface Database {
           volume?: string | null
           inspirado_em?: string | null
           mais_vendido?: boolean | null
+          tipo?: string | null
         }
         Update: {
           id?: string
@@ -99,6 +101,7 @@ export interface Database {
           volume?: string | null
           inspirado_em?: string | null
           mais_vendido?: boolean | null
+          tipo?: string | null
         }
         Relationships: [
           {

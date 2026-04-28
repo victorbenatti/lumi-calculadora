@@ -28,6 +28,7 @@ export function Inventory({ trips, products, refetch }: Props) {
   const [customPrice, setCustomPrice] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [category, setCategory] = useState('Unissex');
+  const [tipo, setTipo] = useState('Importado');
   const [volume, setVolume] = useState('100ml');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -88,6 +89,7 @@ export function Inventory({ trips, products, refetch }: Props) {
       setOcasiao(data.ocasiao);
       setDescricaoIa(data.descricao_ia);
       setInspiradoEm(data.inspirado_em || '');
+      setTipo(data.tipo);
     } catch (error: any) {
       alert(error.message || 'Erro ao gerar dados via IA.');
     } finally {
@@ -141,6 +143,7 @@ export function Inventory({ trips, products, refetch }: Props) {
       volume: volume,
       inspirado_em: inspiradoEm || null,
       mais_vendido: maisVendido,
+      tipo: tipo,
     };
 
     let error;
@@ -183,6 +186,7 @@ export function Inventory({ trips, products, refetch }: Props) {
     setDescricaoIa(p.descricao_ia || '');
     setInspiradoEm(p.inspirado_em || '');
     setMaisVendido(p.mais_vendido || false);
+    setTipo(p.tipo || 'Importado');
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -219,6 +223,7 @@ export function Inventory({ trips, products, refetch }: Props) {
     setDescricaoIa('');
     setInspiradoEm('');
     setMaisVendido(false);
+    setTipo('Importado');
   };
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -320,7 +325,18 @@ export function Inventory({ trips, products, refetch }: Props) {
               </div>
             )}
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label className="text-brand-brown">Origem</Label>
+                <select 
+                  value={tipo} 
+                  onChange={(e) => setTipo(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown text-brand-brown"
+                >
+                  <option value="Importado">Importado</option>
+                  <option value="Árabe">Árabe</option>
+                </select>
+              </div>
               <div className="space-y-2">
                 <Label className="text-brand-brown">Categoria</Label>
                 <select 
@@ -344,7 +360,7 @@ export function Inventory({ trips, products, refetch }: Props) {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-brand-brown">Viagem / Cotação</Label>
+                <Label className="text-brand-brown">Viagem/Cotação</Label>
                 <select 
                   value={selectedTrip} 
                   onChange={(e) => setSelectedTrip(e.target.value)}
@@ -533,6 +549,7 @@ export function Inventory({ trips, products, refetch }: Props) {
                 <tr>
                   <th className="px-4 py-3 rounded-tl-md">Foto</th>
                   <th className="px-4 py-3">Nome</th>
+                  <th className="px-4 py-3">Origem</th>
                   <th className="px-4 py-3">Categoria</th>
                   <th className="px-4 py-3">Custo BRL</th>
                   <th className="px-4 py-3">Preço Venda</th>
@@ -562,8 +579,11 @@ export function Inventory({ trips, products, refetch }: Props) {
                       <td className="px-4 py-3 font-medium text-brand-brown">
                         <div className="flex items-center gap-2">
                           {p.nome}
-                          {p.mais_vendido && <Flame className="w-4 h-4 text-orange-500" title="Mais Vendido" />}
+                          {p.mais_vendido && <span title="Mais Vendido"><Flame className="w-4 h-4 text-orange-500" /></span>}
                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-brand-brown/60">
+                        {p.tipo === 'Árabe' ? 'Árabe' : 'Importado'}
                       </td>
                       <td className="px-4 py-3">{p.categoria || '-'}</td>
                       <td className="px-4 py-3 font-medium text-brand-brown/70">{formatCurrency(p.custo_final_brl)}</td>
