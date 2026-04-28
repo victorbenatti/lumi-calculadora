@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Package, Search, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Wind, Heart, Droplet, Star } from 'lucide-react';
+import { Package, Search, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Wind, Heart, Droplet, Star, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
@@ -42,6 +42,14 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
             <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
               <span className="text-[10px] font-bold tracking-widest uppercase text-red-800">
                 Últimas un.
+              </span>
+            </div>
+          )}
+          {product.mais_vendido && (
+            <div className="absolute top-4 left-4 z-10 bg-emerald-600/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
+              <Flame className="w-3 h-3 text-white" />
+              <span className="text-[10px] font-bold tracking-widest uppercase text-white">
+                Mais Vendido
               </span>
             </div>
           )}
@@ -321,10 +329,38 @@ export default function Catalogo() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} handleInterest={handleInterest} />
-            ))}
+          <div className="space-y-16">
+            {/* Seção Mais Vendidos */}
+            {filteredProducts.filter(p => p.mais_vendido).length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
+                    <Flame className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-brand-brown tracking-tight">Os Favoritos da Lumi</h2>
+                    <p className="text-brand-brown/50 text-sm">As fragrâncias mais desejadas do momento.</p>
+                  </div>
+                </div>
+                <div className="flex overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 gap-6 snap-x snap-mandatory scrollbar-hide">
+                  {filteredProducts.filter(p => p.mais_vendido).map(product => (
+                    <div key={`fav-${product.id}`} className="min-w-[280px] sm:min-w-[320px] max-w-[320px] snap-center shrink-0">
+                      <ProductCard product={product} handleInterest={handleInterest} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Catálogo Completo */}
+            <section>
+              <h2 className="text-xl font-medium text-brand-brown tracking-tight mb-8">Catálogo Completo</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={`all-${product.id}`} product={product} handleInterest={handleInterest} />
+                ))}
+              </div>
+            </section>
           </div>
         )}
       </main>

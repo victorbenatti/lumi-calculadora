@@ -56,6 +56,7 @@ export interface Database {
           descricao_ia: string | null
           volume: string | null
           inspirado_em: string | null
+          mais_vendido: boolean | null
         }
         Insert: {
           id?: string
@@ -76,6 +77,7 @@ export interface Database {
           descricao_ia?: string | null
           volume?: string | null
           inspirado_em?: string | null
+          mais_vendido?: boolean | null
         }
         Update: {
           id?: string
@@ -96,6 +98,7 @@ export interface Database {
           descricao_ia?: string | null
           volume?: string | null
           inspirado_em?: string | null
+          mais_vendido?: boolean | null
         }
         Relationships: [
           {

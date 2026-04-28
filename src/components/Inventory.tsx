@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Button } from './ui/Button';
-import { Package, DollarSign, Percent, Plus, Sparkles } from 'lucide-react';
+import { Package, DollarSign, Percent, Plus, Sparkles, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
 import { enrichPerfumeData } from '../lib/gemini';
@@ -40,6 +40,7 @@ export function Inventory({ trips, products, refetch }: Props) {
   const [ocasiao, setOcasiao] = useState('');
   const [descricaoIa, setDescricaoIa] = useState('');
   const [inspiradoEm, setInspiradoEm] = useState('');
+  const [maisVendido, setMaisVendido] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
@@ -139,6 +140,7 @@ export function Inventory({ trips, products, refetch }: Props) {
       descricao_ia: descricaoIa,
       volume: volume,
       inspirado_em: inspiradoEm || null,
+      mais_vendido: maisVendido,
     };
 
     let error;
@@ -180,6 +182,7 @@ export function Inventory({ trips, products, refetch }: Props) {
     setOcasiao(p.ocasiao || '');
     setDescricaoIa(p.descricao_ia || '');
     setInspiradoEm(p.inspirado_em || '');
+    setMaisVendido(p.mais_vendido || false);
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -215,6 +218,7 @@ export function Inventory({ trips, products, refetch }: Props) {
     setOcasiao('');
     setDescricaoIa('');
     setInspiradoEm('');
+    setMaisVendido(false);
   };
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -369,6 +373,20 @@ export function Inventory({ trips, products, refetch }: Props) {
                   className="border-brand-brown/20 focus-visible:ring-brand-brown text-brand-brown cursor-pointer"
                 />
               </div>
+            </div>
+
+            <div className="flex items-center gap-2 bg-orange-50/50 p-3 rounded-md border border-orange-100">
+              <input 
+                type="checkbox" 
+                id="mais_vendido"
+                checked={maisVendido}
+                onChange={(e) => setMaisVendido(e.target.checked)}
+                className="h-4 w-4 rounded border-orange-200 text-orange-500 focus:ring-orange-500"
+              />
+              <Label htmlFor="mais_vendido" className="text-orange-700 font-medium flex items-center gap-1.5 cursor-pointer text-sm">
+                <Flame className="w-4 h-4 text-orange-500" />
+                Destacar como "Mais Vendido"
+              </Label>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -541,7 +559,12 @@ export function Inventory({ trips, products, refetch }: Props) {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-medium text-brand-brown">{p.nome}</td>
+                      <td className="px-4 py-3 font-medium text-brand-brown">
+                        <div className="flex items-center gap-2">
+                          {p.nome}
+                          {p.mais_vendido && <Flame className="w-4 h-4 text-orange-500" title="Mais Vendido" />}
+                        </div>
+                      </td>
                       <td className="px-4 py-3">{p.categoria || '-'}</td>
                       <td className="px-4 py-3 font-medium text-brand-brown/70">{formatCurrency(p.custo_final_brl)}</td>
                       <td className="px-4 py-3 font-bold text-brand-brown">
