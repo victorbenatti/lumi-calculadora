@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Analytics } from './components/Analytics';
+import { CartDrawer } from './components/CartDrawer';
+import { CartProvider } from './contexts/CartContext';
 
 // Code Splitting - Carregamento preguiçoso das páginas
 const Admin = lazy(() => import('./pages/Admin'));
@@ -19,7 +21,7 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <>
+    <CartProvider>
       <Analytics />
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -37,7 +39,8 @@ function App() {
           <Route path="/produto/:id" element={<ProdutoDetalhe />} />
         </Routes>
       </Suspense>
-    </>
+      <CartDrawer />
+    </CartProvider>
   );
 }
 

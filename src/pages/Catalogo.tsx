@@ -10,23 +10,22 @@ import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
 import GradientText from '../components/GradientText';
+import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
-const formatBRL = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-};
-
 // Componente individual de Card para gerenciar o estado 'expanded'
-function ProductCard({ product, handleInterest }: { product: Product, handleInterest: (name: string) => void }) {
+function ProductCard({ product, handleAddToCart }: { product: Product, handleAddToCart: (product: Product) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const navigate = useNavigate();
+  const { getItemQuantity } = useCart();
 
-  const custo = product.custo_final_brl || 0;
-  const precoVenda = product.preco_venda_brl || (custo * 1.30);
+  const precoVenda = getProductSalePrice(product);
   const installmentValue = calculateInstallment(precoVenda);
   const isLowStock = product.estoque <= 2;
+  const cartQuantity = getItemQuantity(product.id);
+  const reachedStockLimit = cartQuantity >= product.estoque;
   
   // Verifica se o produto tem dados de IA para exibir o botão expansível
   const hasAI = !!product.notas_topo || !!product.descricao_ia || !!product.familia_olfativa;
@@ -166,11 +165,12 @@ function ProductCard({ product, handleInterest }: { product: Product, handleInte
         </div>
         
         <Button 
-          onClick={() => handleInterest(product.nome)}
-          className="w-full mt-3 bg-brand-brown hover:bg-[#2A1D15] text-white rounded-xl py-2.5 text-xs font-medium tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all duration-300"
+          onClick={() => handleAddToCart(product)}
+          disabled={product.estoque <= 0 || reachedStockLimit}
+          className="w-full mt-3 bg-brand-brown hover:bg-[#2A1D15] text-white rounded-xl py-2.5 text-xs font-medium tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all duration-300 disabled:bg-stone-200 disabled:text-stone-500 disabled:shadow-none"
         >
           <ShoppingBag className="w-3.5 h-3.5" />
-          Garantir o meu
+          {reachedStockLimit ? 'No carrinho' : 'Adicionar ao Carrinho'}
         </Button>
       </CardContent>
     </Card>
@@ -181,6 +181,7 @@ export default function Catalogo() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const { addItem } = useCart();
 
   const [filters, setFilters] = useState({
     search: '',
@@ -223,10 +224,12 @@ export default function Catalogo() {
     };
   }, []);
 
-  const handleInterest = (productName: string) => {
-    ReactGA.event({ category: 'Conversão', action: 'Clique WhatsApp', label: productName });
-    const text = encodeURIComponent(`Olá! Tenho interesse no perfume: ${productName}. Gostaria de garantir o meu!`);
-    window.open(`https://wa.me/5519982796873?text=${text}`, '_blank');
+  const handleAddToCart = (product: Product) => {
+    const result = addItem(product);
+
+    if (result.added) {
+      ReactGA.event({ category: 'Carrinho', action: 'Adicionar Produto', label: product.nome });
+    }
   };
 
   const filteredProducts = products.filter(p => {
@@ -235,7 +238,7 @@ export default function Catalogo() {
     const matchesTipo = filters.tipo === 'Todos' || p.tipo === filters.tipo;
     
     let matchesPrice = true;
-    const preco = p.preco_venda_brl || (p.custo_final_brl * 1.30);
+    const preco = getProductSalePrice(p);
     if (filters.precoFaixa === 'Até R$300') matchesPrice = preco <= 300;
     if (filters.precoFaixa === 'R$300 - R$600') matchesPrice = preco > 300 && preco <= 600;
     if (filters.precoFaixa === 'Acima de R$600') matchesPrice = preco > 600;
@@ -430,7 +433,7 @@ export default function Catalogo() {
         {/* Main Content Area */}
         <div className="flex-1 min-w-0">
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="flex flex-col h-full bg-white rounded-2xl p-1.5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-brand-brown/5">
                   <div className="aspect-[3/4] bg-stone-100/80 rounded-xl animate-pulse w-full mb-2"></div>
@@ -475,7 +478,7 @@ export default function Catalogo() {
                   <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 gap-3 sm:gap-4 snap-x snap-mandatory scrollbar-hide">
                     {filteredProducts.filter(p => p.mais_vendido).map(product => (
                       <div key={`fav-${product.id}`} className="min-w-[160px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
-                        <ProductCard product={product} handleInterest={handleInterest} />
+                        <ProductCard product={product} handleAddToCart={handleAddToCart} />
                       </div>
                     ))}
                   </div>
@@ -492,9 +495,9 @@ export default function Catalogo() {
                     {filteredProducts.length} {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                   {filteredProducts.map((product) => (
-                    <ProductCard key={`all-${product.id}`} product={product} handleInterest={handleInterest} />
+                    <ProductCard key={`all-${product.id}`} product={product} handleAddToCart={handleAddToCart} />
                   ))}
                 </div>
               </section>

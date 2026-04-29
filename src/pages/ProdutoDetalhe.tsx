@@ -6,16 +6,14 @@ import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
+import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
-
-const formatBRL = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-};
 
 export default function ProdutoDetalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addItem, getItemQuantity } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -59,11 +57,13 @@ export default function ProdutoDetalhe() {
     };
   }, [id]);
 
-  const handleInterest = () => {
+  const handleAddToCart = () => {
     if (!product) return;
-    ReactGA.event({ category: 'Conversão', action: 'Clique WhatsApp', label: product.nome });
-    const text = encodeURIComponent(`Olá! Tenho interesse no perfume: ${product.nome}. Gostaria de garantir o meu!`);
-    window.open(`https://wa.me/5519982796873?text=${text}`, '_blank');
+    const result = addItem(product);
+
+    if (result.added) {
+      ReactGA.event({ category: 'Carrinho', action: 'Adicionar Produto', label: product.nome });
+    }
   };
 
   if (loading) {
@@ -97,11 +97,12 @@ export default function ProdutoDetalhe() {
     );
   }
 
-  const custo = product.custo_final_brl || 0;
-  const precoVenda = product.preco_venda_brl || (custo * 1.30);
+  const precoVenda = getProductSalePrice(product);
   const installmentValue = calculateInstallment(precoVenda, 12);
   const isLowStock = product.estoque > 0 && product.estoque <= 2;
   const outOfStock = product.estoque <= 0;
+  const cartQuantity = getItemQuantity(product.id);
+  const reachedStockLimit = cartQuantity >= product.estoque;
 
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans selection:bg-brand-brown selection:text-brand-bg">
@@ -216,16 +217,16 @@ export default function ProdutoDetalhe() {
 
             {/* CTA Master */}
             <Button 
-              onClick={handleInterest}
-              disabled={outOfStock}
+              onClick={handleAddToCart}
+              disabled={outOfStock || reachedStockLimit}
               className={`w-full py-8 rounded-[1.25rem] text-lg font-bold tracking-wide flex items-center justify-center gap-3 shadow-xl transition-all duration-300 mb-16 ${
-                outOfStock 
+                outOfStock || reachedStockLimit
                   ? 'bg-stone-200 text-stone-500 cursor-not-allowed shadow-none hover:bg-stone-200' 
                   : 'bg-brand-brown hover:bg-[#2A1D15] text-white hover:shadow-2xl hover:-translate-y-1'
               }`}
             >
               <ShoppingBag className="w-6 h-6" /> 
-              {outOfStock ? 'Indisponível no momento' : 'Comprar agora via WhatsApp'}
+              {outOfStock ? 'Indisponível no momento' : reachedStockLimit ? 'Quantidade máxima no carrinho' : 'Adicionar ao Carrinho'}
             </Button>
 
             {/* Conteúdo Enriquecido por IA */}
