@@ -37,7 +37,7 @@ export async function enrichPerfumeData(nomePerfume: string): Promise<PerfumeAIA
     let parsedData: Partial<PerfumeAIAttributes>;
     try {
       parsedData = JSON.parse(responseText.trim());
-    } catch (parseError) {
+    } catch {
       console.error("Erro no Parse do JSON retornado pela IA:", responseText);
       throw new Error("A IA não retornou um formato JSON válido.");
     }
@@ -52,9 +52,9 @@ export async function enrichPerfumeData(nomePerfume: string): Promise<PerfumeAIA
       inspirado_em: parsedData.inspirado_em || null,
       tipo: parsedData.tipo || 'Importado',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao processar dados da IA:', error);
-    const msg = error?.message || 'Falha de comunicação com o Google Gemini.';
+    const msg = error instanceof Error ? error.message : 'Falha de comunicação com o Google Gemini.';
     throw new Error(`Erro na IA: ${msg}`);
   }
 }

@@ -90,8 +90,8 @@ export function Inventory({ trips, products, refetch }: Props) {
       setDescricaoIa(data.descricao_ia);
       setInspiradoEm(data.inspirado_em || '');
       setTipo(data.tipo);
-    } catch (error: any) {
-      alert(error.message || 'Erro ao gerar dados via IA.');
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Erro ao gerar dados via IA.');
     } finally {
       setGeneratingAI(false);
     }

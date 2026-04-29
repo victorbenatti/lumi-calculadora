@@ -8,6 +8,7 @@ import type { Database } from '../types/supabase';
 
 type Sale = Database['public']['Tables']['vendas']['Row'];
 type Product = Database['public']['Tables']['produtos']['Row'];
+type SaleStatus = Sale['status_pagamento'];
 
 interface Props {
   sales: Sale[];
@@ -19,7 +20,8 @@ export function SalesTracker({ sales, products, refetch }: Props) {
   const [selectedProduct, setSelectedProduct] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [salePrice, setSalePrice] = useState('');
-  const [status, setStatus] = useState<'pago' | 'pendente'>('pago');
+  const [quantity, setQuantity] = useState('1');
+  const [status, setStatus] = useState<Exclude<SaleStatus, 'cancelada'>>('pago');
   const [loading, setLoading] = useState(false);
 
   const handleAddSale = async () => {
@@ -27,34 +29,166 @@ export function SalesTracker({ sales, products, refetch }: Props) {
     setLoading(true);
 
     const priceNum = parseFloat(salePrice.replace(',', '.'));
+    const qty = parseInt(quantity, 10);
 
-    const { error } = await supabase.from('vendas').insert({
-      produto_id: selectedProduct,
-      cliente: customerName,
-      preco_venda: priceNum,
-      status_pagamento: status,
-      data_venda: new Date().toISOString()
-    });
+    if (!Number.isFinite(priceNum) || priceNum <= 0) {
+      setLoading(false);
+      return alert('Informe um preço de venda válido.');
+    }
 
-    setLoading(false);
-    if (error) {
-      console.error(error);
-      alert('Erro ao registrar venda');
-    } else {
+    if (!Number.isInteger(qty) || qty <= 0) {
+      setLoading(false);
+      return alert('Informe uma quantidade válida.');
+    }
+
+    const product = products.find(p => p.id === selectedProduct);
+    if (!product) {
+      setLoading(false);
+      return alert('Produto selecionado não encontrado. Atualize a página e tente novamente.');
+    }
+
+    try {
+      const { data: currentProduct, error: productError } = await supabase
+        .from('produtos')
+        .select('id, estoque')
+        .eq('id', selectedProduct)
+        .single();
+
+      if (productError || !currentProduct) {
+        throw productError || new Error('Produto não encontrado no estoque.');
+      }
+
+      if (currentProduct.estoque < qty) {
+        return alert(`Estoque insuficiente para ${product.nome}. Disponível: ${currentProduct.estoque} un.`);
+      }
+
+      const newStock = currentProduct.estoque - qty;
+      const { data: updatedStock, error: stockError } = await supabase
+        .from('produtos')
+        .update({ estoque: newStock })
+        .eq('id', selectedProduct)
+        .gte('estoque', qty)
+        .select('id')
+        .single();
+
+      if (stockError) throw stockError;
+      if (!updatedStock) throw new Error('Não foi possível baixar o estoque. Tente novamente.');
+
+      const saleRows = Array.from({ length: qty }, () => ({
+        produto_id: selectedProduct,
+        cliente: customerName,
+        preco_venda: priceNum,
+        status_pagamento: status,
+        data_venda: new Date().toISOString()
+      }));
+
+      const { error: saleError } = await supabase.from('vendas').insert(saleRows);
+
+      if (saleError) {
+        await supabase
+          .from('produtos')
+          .update({ estoque: currentProduct.estoque })
+          .eq('id', selectedProduct);
+        throw saleError;
+      }
+
       setCustomerName('');
       setSalePrice('');
+      setQuantity('1');
       setSelectedProduct('');
       refetch();
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : 'Erro ao registrar venda');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleToggleStatus = async (id: string, currStatus: string) => {
+  const handleToggleStatus = async (id: string, currStatus: SaleStatus) => {
+    if (currStatus === 'cancelada') return alert('Venda cancelada não pode ter o status alterado.');
     const newStatus = currStatus === 'pago' ? 'pendente' : 'pago';
     await supabase.from('vendas').update({ status_pagamento: newStatus }).eq('id', id);
     refetch();
   };
 
+  const handleCancelSale = async (sale: Sale) => {
+    if (sale.status_pagamento === 'cancelada') return alert('Esta venda já foi cancelada.');
+    if (!confirm('Cancelar esta venda e devolver 1 unidade ao estoque?')) return;
+
+    setLoading(true);
+    try {
+      const { data: currentSale, error: saleFetchError } = await supabase
+        .from('vendas')
+        .select('id, produto_id, status_pagamento')
+        .eq('id', sale.id)
+        .single();
+
+      if (saleFetchError || !currentSale) {
+        throw saleFetchError || new Error('Venda não encontrada.');
+      }
+
+      if (currentSale.status_pagamento === 'cancelada') {
+        return alert('Esta venda já foi cancelada.');
+      }
+
+      const { data: currentProduct, error: productError } = await supabase
+        .from('produtos')
+        .select('id, estoque')
+        .eq('id', currentSale.produto_id)
+        .single();
+
+      if (productError || !currentProduct) {
+        throw productError || new Error('Produto da venda não encontrado.');
+      }
+
+      const previousStatus = currentSale.status_pagamento;
+      const { data: canceledSale, error: cancelError } = await supabase
+        .from('vendas')
+        .update({ status_pagamento: 'cancelada' })
+        .eq('id', currentSale.id)
+        .neq('status_pagamento', 'cancelada')
+        .select('id')
+        .single();
+
+      if (cancelError) throw cancelError;
+      if (!canceledSale) throw new Error('Não foi possível cancelar a venda. Tente novamente.');
+
+      const { error: stockError } = await supabase
+        .from('produtos')
+        .update({ estoque: currentProduct.estoque + 1 })
+        .eq('id', currentProduct.id);
+
+      if (stockError) {
+        await supabase
+          .from('vendas')
+          .update({ status_pagamento: previousStatus })
+          .eq('id', currentSale.id);
+        throw stockError;
+      }
+
+      refetch();
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : 'Erro ao cancelar venda');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+  const getStatusLabel = (status: SaleStatus) => {
+    if (status === 'pago') return 'Pago';
+    if (status === 'pendente') return 'Pendente';
+    return 'Cancelada';
+  };
+
+  const getStatusClassName = (status: SaleStatus) => {
+    if (status === 'pago') return 'bg-emerald-100 text-emerald-800';
+    if (status === 'pendente') return 'bg-amber-100 text-amber-800';
+    return 'bg-red-100 text-red-800';
+  };
 
   // Calcula split de lucro
   const salesWithSplit = useMemo(() => {
@@ -98,14 +232,18 @@ export function SalesTracker({ sales, products, refetch }: Props) {
               <Input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="border-brand-brown/20 text-brand-brown" />
             </div>
             <div className="space-y-2">
-              <Label className="text-brand-brown">Preço Vendido (BRL)</Label>
+              <Label className="text-brand-brown">Preço Unitário Vendido (BRL)</Label>
               <Input type="text" inputMode="decimal" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} className="border-brand-brown/20 text-brand-brown" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-brand-brown">Quantidade Vendida</Label>
+              <Input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="border-brand-brown/20 text-brand-brown" />
             </div>
             <div className="space-y-2">
               <Label className="text-brand-brown">Status</Label>
               <select 
                 value={status} 
-                onChange={(e) => setStatus(e.target.value as 'pago' | 'pendente')}
+                onChange={(e) => setStatus(e.target.value as Exclude<SaleStatus, 'cancelada'>)}
                 className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown text-brand-brown"
               >
                 <option value="pago">Pago</option>
@@ -139,7 +277,7 @@ export function SalesTracker({ sales, products, refetch }: Props) {
               </thead>
               <tbody className="text-brand-brown divide-y divide-brand-brown/5">
                 {salesWithSplit.map(s => (
-                  <tr key={s.id}>
+                  <tr key={s.id} className={s.status_pagamento === 'cancelada' ? 'opacity-60' : ''}>
                     <td className="px-4 py-3">{new Date(s.data_venda).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
                       <div className="font-semibold">{s.cliente}</div>
@@ -152,14 +290,23 @@ export function SalesTracker({ sales, products, refetch }: Props) {
                     <td className="px-4 py-3 font-medium">{formatCurrency(s.profit)}</td>
                     <td className="px-4 py-3 text-emerald-700 font-bold bg-emerald-50/50">{formatCurrency(s.partnerSplit)}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${s.status_pagamento === 'pago' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                        {s.status_pagamento === 'pago' ? 'Pago' : 'Pendente'}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusClassName(s.status_pagamento)}`}>
+                        {getStatusLabel(s.status_pagamento)}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <Button variant="outline" size="sm" onClick={() => handleToggleStatus(s.id, s.status_pagamento)}>
-                        {s.status_pagamento === 'pago' ? 'Marcar Pendente' : 'Marcar Pago'}
-                      </Button>
+                    <td className="px-4 py-3 space-x-2">
+                      {s.status_pagamento !== 'cancelada' ? (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => handleToggleStatus(s.id, s.status_pagamento)}>
+                            {s.status_pagamento === 'pago' ? 'Marcar Pendente' : 'Marcar Pago'}
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleCancelSale(s)} className="border-red-200 text-red-600 hover:bg-red-50">
+                            Cancelar
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-brand-brown/40">Sem ações</span>
+                      )}
                     </td>
                   </tr>
                 ))}

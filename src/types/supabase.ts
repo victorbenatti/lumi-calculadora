@@ -120,7 +120,7 @@ export interface Database {
           produto_id: string
           cliente: string
           preco_venda: number
-          status_pagamento: 'pago' | 'pendente'
+          status_pagamento: 'pago' | 'pendente' | 'cancelada'
           data_venda: string
         }
         Insert: {
@@ -129,7 +129,7 @@ export interface Database {
           produto_id?: string
           cliente: string
           preco_venda: number
-          status_pagamento?: 'pago' | 'pendente'
+          status_pagamento?: 'pago' | 'pendente' | 'cancelada'
           data_venda?: string
         }
         Update: {
@@ -138,7 +138,7 @@ export interface Database {
           produto_id?: string
           cliente?: string
           preco_venda?: number
-          status_pagamento?: 'pago' | 'pendente'
+          status_pagamento?: 'pago' | 'pendente' | 'cancelada'
           data_venda?: string
         }
         Relationships: [
