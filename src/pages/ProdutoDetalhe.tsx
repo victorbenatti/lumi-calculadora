@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Header } from '../components/Header';
+import { FaqSection, type FaqItem } from '../components/FaqSection';
 import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
@@ -10,6 +11,29 @@ import ReactGA from 'react-ga4';
 import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
+
+const productFaqItems: FaqItem[] = [
+  {
+    question: 'Esse perfume é original?',
+    answer: 'Sim. A Lumi trabalha com fragrâncias importadas selecionadas e confere cada item antes do envio. Se quiser, o atendimento pode enviar mais informações e fotos pelo WhatsApp.',
+  },
+  {
+    question: 'O valor mostrado é o valor final?',
+    answer: 'O valor do catálogo é uma estimativa de venda do produto. Frete, disponibilidade e condições de pagamento são confirmados no atendimento antes de finalizar o pedido.',
+  },
+  {
+    question: 'Como finalizo a compra desse perfume?',
+    answer: 'Adicione o produto ao carrinho, revise sua seleção e clique em finalizar pelo WhatsApp. A equipe confirma estoque, pagamento e envio com você.',
+  },
+  {
+    question: 'Posso pedir ajuda para escolher uma fragrância?',
+    answer: 'Pode. O atendimento personalizado ajuda a comparar famílias olfativas, intensidade, ocasião de uso e referências parecidas.',
+  },
+  {
+    question: 'Quando o produto é reservado?',
+    answer: 'A reserva acontece somente após confirmação no WhatsApp. Até lá, o carrinho funciona como uma lista de intenção de compra.',
+  },
+];
 
 export default function ProdutoDetalhe() {
   const { id } = useParams();
@@ -428,6 +452,14 @@ export default function ProdutoDetalhe() {
             </div>
           </section>
         )}
+
+        <FaqSection
+          eyebrow="Antes de finalizar"
+          title="Dúvidas sobre este produto"
+          description="Informações rápidas para revisar sua compra com calma antes de chamar no WhatsApp."
+          items={productFaqItems}
+          className="mt-16 border-t border-brand-brown/10 pt-10 md:mt-20 md:pt-14"
+        />
       </main>
       </div>
     </div>

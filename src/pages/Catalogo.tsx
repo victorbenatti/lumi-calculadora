@@ -11,6 +11,7 @@ import ReactGA from 'react-ga4';
 import GradientText from '../components/GradientText';
 import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
 import { Header } from '../components/Header';
+import { FaqSection, type FaqItem } from '../components/FaqSection';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 type SortOption = 'Mais Vendidos' | 'Menor Preço' | 'Maior Preço';
@@ -189,6 +190,29 @@ const trustMessages = [
   'Produtos 100% Originais',
   'Envio Rastreado para todo o Brasil',
   'Atendimento Personalizado',
+];
+
+const catalogFaqItems: FaqItem[] = [
+  {
+    question: 'Os produtos da Lumi são originais?',
+    answer: 'Sim. Trabalhamos com fragrâncias importadas selecionadas e conferidas antes do envio. Se o cliente tiver qualquer dúvida, o atendimento também pode enviar mais detalhes pelo WhatsApp.',
+  },
+  {
+    question: 'Como funciona a compra pelo WhatsApp?',
+    answer: 'Você adiciona os perfumes ao carrinho, revisa quantidades e total estimado, e finaliza pelo WhatsApp. A equipe confirma disponibilidade, pagamento e envio antes de fechar o pedido.',
+  },
+  {
+    question: 'A Lumi envia para todo o Brasil?',
+    answer: 'Sim. Enviamos com rastreamento para todo o Brasil, e o prazo varia conforme a cidade, modalidade escolhida e confirmação do pagamento.',
+  },
+  {
+    question: 'Quais formas de pagamento são aceitas?',
+    answer: 'O atendimento confirma as opções disponíveis no fechamento do pedido. A operação está evoluindo por etapas para um checkout completo.',
+  },
+  {
+    question: 'Os perfumes árabes são pronta entrega?',
+    answer: 'O catálogo exibe apenas itens com estoque positivo. Ainda assim, a reserva acontece somente após confirmação no atendimento, porque algumas unidades podem sair rapidamente.',
+  },
 ];
 
 function TrustTopBar() {
@@ -567,6 +591,17 @@ export default function Catalogo() {
           )}
         </div>
         </main>
+
+        <section className="bg-brand-bg px-4 pb-14 pt-2 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl">
+            <FaqSection
+              eyebrow="Dúvidas frequentes"
+              title="Comprar na Lumi"
+              description="Respostas rápidas para comprar com mais segurança e fechar seu pedido sem fricção."
+              items={catalogFaqItems}
+            />
+          </div>
+        </section>
 
         <footer className="bg-white border-t border-brand-brown/5 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
