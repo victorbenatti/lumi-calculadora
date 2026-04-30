@@ -15,6 +15,7 @@ export default function ProdutoDetalhe() {
   const navigate = useNavigate();
   const { addItem, getItemQuantity } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -23,6 +24,9 @@ export default function ProdutoDetalhe() {
 
     const fetchProduct = async () => {
       try {
+        setRelatedProducts([]);
+        setImageLoaded(false);
+
         const { data, error } = await supabase
           .from('produtos')
           .select('*')
@@ -56,6 +60,69 @@ export default function ProdutoDetalhe() {
       supabase.removeChannel(channel);
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!product) return;
+
+    const fetchRelatedProducts = async () => {
+      const relatedMap = new Map<string, Product>();
+
+      const addCandidates = (candidates: Product[] | null) => {
+        candidates?.forEach((candidate) => {
+          if (candidate.id !== product.id && relatedMap.size < 4) {
+            relatedMap.set(candidate.id, candidate);
+          }
+        });
+      };
+
+      const fetchByField = async (
+        field: 'familia_olfativa' | 'categoria' | 'tipo',
+        value: string | null
+      ) => {
+        if (!value || relatedMap.size >= 4) return;
+
+        const { data, error } = await supabase
+          .from('produtos')
+          .select('*')
+          .neq('id', product.id)
+          .gt('estoque', 0)
+          .eq(field, value)
+          .order('mais_vendido', { ascending: false, nullsFirst: false })
+          .order('nome', { ascending: true })
+          .limit(8);
+
+        if (error) throw error;
+        addCandidates(data);
+      };
+
+      try {
+        await fetchByField('familia_olfativa', product.familia_olfativa);
+        await fetchByField('categoria', product.categoria);
+        await fetchByField('tipo', product.tipo);
+
+        if (relatedMap.size < 4) {
+          const { data, error } = await supabase
+            .from('produtos')
+            .select('*')
+            .neq('id', product.id)
+            .gt('estoque', 0)
+            .order('mais_vendido', { ascending: false, nullsFirst: false })
+            .order('nome', { ascending: true })
+            .limit(8);
+
+          if (error) throw error;
+          addCandidates(data);
+        }
+
+        setRelatedProducts(Array.from(relatedMap.values()).slice(0, 4));
+      } catch (err) {
+        console.error('Erro ao buscar produtos relacionados:', err);
+        setRelatedProducts([]);
+      }
+    };
+
+    fetchRelatedProducts();
+  }, [product]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -291,6 +358,66 @@ export default function ProdutoDetalhe() {
             
           </div>
         </div>
+
+        {relatedProducts.length > 0 && (
+          <section className="mt-20 border-t border-brand-brown/10 pt-10 md:mt-24 md:pt-14">
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brand-brown/40">
+                  Seleção Lumi
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-brand-brown">
+                  Você também pode gostar
+                </h2>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:gap-5">
+              {relatedProducts.map((relatedProduct) => {
+                const relatedPrice = getProductSalePrice(relatedProduct);
+
+                return (
+                  <button
+                    key={relatedProduct.id}
+                    type="button"
+                    onClick={() => navigate(`/produto/${relatedProduct.id}`)}
+                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-brand-brown/5 bg-white p-1.5 text-left shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(61,43,31,0.08)]"
+                  >
+                    <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-xl bg-[#fcfbf9]">
+                      {relatedProduct.mais_vendido && (
+                        <span className="absolute left-2 top-2 z-10 rounded-full bg-emerald-600 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white">
+                          Top
+                        </span>
+                      )}
+
+                      {relatedProduct.imagem_url ? (
+                        <img
+                          src={relatedProduct.imagem_url}
+                          alt={relatedProduct.nome}
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      ) : (
+                        <Package className="h-10 w-10 text-brand-brown/10" />
+                      )}
+                    </div>
+
+                    <div className="flex flex-1 flex-col px-2 pb-2 pt-2">
+                      <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.15em] text-brand-brown/40">
+                        {relatedProduct.familia_olfativa || relatedProduct.categoria || 'Fragrância'}
+                      </p>
+                      <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-brand-brown transition-colors group-hover:text-amber-900">
+                        {relatedProduct.nome}
+                      </h3>
+                      <strong className="mt-2 text-base text-brand-brown">
+                        {formatBRL(relatedPrice)}
+                      </strong>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

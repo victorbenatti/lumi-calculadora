@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -13,6 +13,14 @@ import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
 import { Header } from '../components/Header';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
+type SortOption = 'Mais Vendidos' | 'Menor Preço' | 'Maior Preço';
+type CatalogFilters = {
+  search: string;
+  categoria: string;
+  tipo: string;
+  precoFaixa: string;
+  ordenacao: SortOption;
+};
 
 // Componente individual de Card para gerenciar o estado 'expanded'
 function ProductCard({ product, handleAddToCart }: { product: Product, handleAddToCart: (product: Product) => void }) {
@@ -220,11 +228,12 @@ export default function Catalogo() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const { addItem } = useCart();
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<CatalogFilters>({
     search: '',
     categoria: 'Todos',
     tipo: 'Todos',
-    precoFaixa: 'Todos'
+    precoFaixa: 'Todos',
+    ordenacao: 'Mais Vendidos',
   });
 
   const fetchCatalog = async () => {
@@ -269,25 +278,40 @@ export default function Catalogo() {
     }
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.nome.toLowerCase().includes(filters.search.toLowerCase());
-    const matchesCategory = filters.categoria === 'Todos' || p.categoria === filters.categoria;
-    const matchesTipo = filters.tipo === 'Todos' || p.tipo === filters.tipo;
-    
-    let matchesPrice = true;
-    const preco = getProductSalePrice(p);
-    if (filters.precoFaixa === 'Até R$300') matchesPrice = preco <= 300;
-    if (filters.precoFaixa === 'R$300 - R$600') matchesPrice = preco > 300 && preco <= 600;
-    if (filters.precoFaixa === 'Acima de R$600') matchesPrice = preco > 600;
+  const filteredProducts = useMemo(() => {
+    const filtered = products.filter(p => {
+      const matchesSearch = p.nome.toLowerCase().includes(filters.search.toLowerCase());
+      const matchesCategory = filters.categoria === 'Todos' || p.categoria === filters.categoria;
+      const matchesTipo = filters.tipo === 'Todos' || p.tipo === filters.tipo;
+      
+      let matchesPrice = true;
+      const preco = getProductSalePrice(p);
+      if (filters.precoFaixa === 'Até R$300') matchesPrice = preco <= 300;
+      if (filters.precoFaixa === 'R$300 - R$600') matchesPrice = preco > 300 && preco <= 600;
+      if (filters.precoFaixa === 'Acima de R$600') matchesPrice = preco > 600;
 
-    return matchesSearch && matchesCategory && matchesTipo && matchesPrice;
-  });
+      return matchesSearch && matchesCategory && matchesTipo && matchesPrice;
+    });
+
+    return [...filtered].sort((a, b) => {
+      const priceA = getProductSalePrice(a);
+      const priceB = getProductSalePrice(b);
+
+      if (filters.ordenacao === 'Menor Preço') return priceA - priceB;
+      if (filters.ordenacao === 'Maior Preço') return priceB - priceA;
+
+      const bestSellerScore = Number(Boolean(b.mais_vendido)) - Number(Boolean(a.mais_vendido));
+      if (bestSellerScore !== 0) return bestSellerScore;
+
+      return a.nome.localeCompare(b.nome, 'pt-BR');
+    });
+  }, [filters, products]);
 
   const hasActiveFilters = filters.categoria !== 'Todos' || filters.tipo !== 'Todos' || filters.precoFaixa !== 'Todos';
 
   const clearFilters = () => setFilters({ ...filters, categoria: 'Todos', tipo: 'Todos', precoFaixa: 'Todos' });
 
-  const setFilterValue = (key: keyof typeof filters, value: string) => {
+  const setFilterValue = <K extends keyof CatalogFilters>(key: K, value: CatalogFilters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -302,6 +326,23 @@ export default function Catalogo() {
           <X className="w-3 h-3" /> Limpar Filtros
         </Button>
       )}
+
+      <div className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
+          <Flame className="w-3.5 h-3.5" /> Ordenar
+        </h3>
+        <select
+          value={filters.ordenacao}
+          onChange={(event) => setFilterValue('ordenacao', event.target.value as SortOption)}
+          className="h-11 w-full rounded-xl border border-brand-brown/10 bg-white px-3 text-sm font-semibold text-brand-brown shadow-sm outline-none transition-colors focus:border-brand-brown/30 focus:ring-2 focus:ring-brand-brown/10"
+        >
+          {(['Mais Vendidos', 'Menor Preço', 'Maior Preço'] as SortOption[]).map(option => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="h-px bg-brand-brown/5 w-full"></div>
       
       <div className="space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
