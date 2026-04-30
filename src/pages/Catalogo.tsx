@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Package, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone } from 'lucide-react';
+import { Package, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
@@ -22,6 +22,8 @@ type CatalogFilters = {
   precoFaixa: string;
   ordenacao: SortOption;
 };
+
+const PRODUCTS_PER_PAGE = 28;
 
 // Componente individual de Card para gerenciar o estado 'expanded'
 function ProductCard({ product, handleAddToCart }: { product: Product, handleAddToCart: (product: Product) => void }) {
@@ -250,6 +252,8 @@ export default function Catalogo() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const catalogSectionRef = useRef<HTMLDivElement | null>(null);
   const { addItem } = useCart();
 
   const [filters, setFilters] = useState<CatalogFilters>({
@@ -331,12 +335,53 @@ export default function Catalogo() {
     });
   }, [filters, products]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE));
+  const currentPageStart = filteredProducts.length === 0
+    ? 0
+    : ((currentPage - 1) * PRODUCTS_PER_PAGE) + 1;
+  const currentPageEnd = Math.min(currentPage * PRODUCTS_PER_PAGE, filteredProducts.length);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
+  }, [currentPage, filteredProducts]);
+
+  const visiblePageNumbers = useMemo(() => {
+    const maxVisiblePages = 5;
+    const startPage = Math.max(1, Math.min(
+      currentPage - Math.floor(maxVisiblePages / 2),
+      totalPages - maxVisiblePages + 1
+    ));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const hasActiveFilters = filters.categoria !== 'Todos' || filters.tipo !== 'Todos' || filters.precoFaixa !== 'Todos';
 
   const clearFilters = () => setFilters({ ...filters, categoria: 'Todos', tipo: 'Todos', precoFaixa: 'Todos' });
 
   const setFilterValue = <K extends keyof CatalogFilters>(key: K, value: CatalogFilters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const goToPage = (page: number) => {
+    const nextPage = Math.min(Math.max(page, 1), totalPages);
+    setCurrentPage(nextPage);
+
+    window.setTimeout(() => {
+      catalogSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
   };
 
   const filterContent = (
@@ -572,20 +617,80 @@ export default function Catalogo() {
               )}
 
               {/* Catálogo Completo */}
-              <section>
+              <section ref={catalogSectionRef} className="scroll-mt-32">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-base font-medium text-brand-brown tracking-tight">
-                    Catálogo Completo
-                  </h2>
-                  <span className="text-xs text-brand-brown/50 font-medium">
-                    {filteredProducts.length} {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
-                  </span>
+                  <div>
+                    <h2 className="text-base font-medium text-brand-brown tracking-tight">
+                      Catálogo Completo
+                    </h2>
+                    <span className="text-xs text-brand-brown/50 font-medium">
+                      {filteredProducts.length} {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
+                    </span>
+                  </div>
+                  {filteredProducts.length > 0 && (
+                    <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-brand-brown/40">
+                      {currentPageStart}-{currentPageEnd} de {filteredProducts.length}
+                    </span>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-                  {filteredProducts.map((product) => (
+                  {paginatedProducts.map((product) => (
                     <ProductCard key={`all-${product.id}`} product={product} handleAddToCart={handleAddToCart} />
                   ))}
                 </div>
+
+                {totalPages > 1 && (
+                  <nav
+                    className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border border-brand-brown/5 bg-white px-4 py-4 shadow-[0_4px_20px_rgba(61,43,31,0.03)] sm:flex-row"
+                    aria-label="Paginação do catálogo"
+                  >
+                    <p className="text-xs font-medium text-brand-brown/50">
+                      Página {currentPage} de {totalPages}
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => goToPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="h-9 rounded-full border-brand-brown/15 px-3 text-brand-brown hover:bg-stone-50 disabled:opacity-40"
+                        aria-label="Página anterior"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+
+                      <div className="flex items-center gap-1">
+                        {visiblePageNumbers.map((pageNumber) => (
+                          <button
+                            key={pageNumber}
+                            type="button"
+                            onClick={() => goToPage(pageNumber)}
+                            className={`flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold transition-colors ${
+                              currentPage === pageNumber
+                                ? 'bg-brand-brown text-white shadow-sm'
+                                : 'text-brand-brown/60 hover:bg-stone-50 hover:text-brand-brown'
+                            }`}
+                            aria-current={currentPage === pageNumber ? 'page' : undefined}
+                          >
+                            {pageNumber}
+                          </button>
+                        ))}
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => goToPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="h-9 rounded-full border-brand-brown/15 px-3 text-brand-brown hover:bg-stone-50 disabled:opacity-40"
+                        aria-label="Próxima página"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </nav>
+                )}
               </section>
             </div>
           )}
