@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Package, Search, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone } from 'lucide-react';
+import { Package, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
@@ -11,6 +10,7 @@ import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
 import GradientText from '../components/GradientText';
 import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
+import { Header } from '../components/Header';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -177,6 +177,43 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
   );
 }
 
+const trustMessages = [
+  'Produtos 100% Originais',
+  'Envio Rastreado para todo o Brasil',
+  'Atendimento Personalizado',
+];
+
+function TrustTopBar() {
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setMessageIndex((currentIndex) => (currentIndex + 1) % trustMessages.length);
+    }, 3000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="h-9 overflow-hidden bg-brand-brown text-white">
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-center px-4 text-center">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={trustMessages[messageIndex]}
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -10, opacity: 0 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
+            className="text-[11px] font-bold uppercase tracking-[0.22em] sm:text-xs"
+          >
+            {trustMessages[messageIndex]}
+          </motion.p>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
 export default function Catalogo() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -322,61 +359,45 @@ export default function Catalogo() {
 
   return (
     <div className="min-h-screen bg-brand-bg font-sans selection:bg-brand-brown selection:text-brand-bg flex flex-col">
-      <section className="bg-white border-b border-brand-brown/5 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#fdfbf9] to-white pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 relative z-10 flex flex-col items-center">
-          
-          <div className="mb-1 w-full flex justify-center">
-            <img 
-              src="/logo-lumi-importadora.svg" 
-              alt="Lumi Imports" 
-              className="h-48 sm:h-48 w-auto object-contain drop-shadow-sm" 
-            />
-          </div>
-          
-          <h1 className="text-2xl md:text-4xl font-light tracking-tight text-brand-brown text-center mb-0 flex flex-col items-center gap-0">
-            A sua nova
-            <GradientText
-              colors={['#3D2B1F', '#a68a74', '#3D2B1F']}
-              animationSpeed={6}
-              showBorder={false}
-              className="font-extrabold pb-2 tracking-tight"
-            >
-              assinatura olfativa.
-            </GradientText>
-          </h1>
-          <p className="text-brand-brown/50 text-center max-w-lg mb-4 text-xs md:text-sm tracking-wide">
-            Descubra fragrâncias importadas originais selecionadas criteriosamente.
-          </p>
+      <Header
+        searchValue={filters.search}
+        onSearchChange={(value) => setFilterValue('search', value)}
+        onOpenCategories={() => setIsMobileFiltersOpen(true)}
+      />
 
-          <div className="w-full max-w-2xl relative group mb-4 flex gap-3">
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-brand-brown/30 group-focus-within:text-brand-brown transition-colors" />
-              </div>
-              <Input
-                type="text"
-                placeholder="Buscar fragrância ou marca..."
-                value={filters.search}
-                onChange={(e) => setFilterValue('search', e.target.value)}
-                className="pl-14 py-8 w-full text-lg rounded-full border-brand-brown/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:ring-1 focus-visible:ring-brand-brown/20 focus-visible:border-brand-brown/30 bg-white transition-all text-brand-brown placeholder:text-brand-brown/30 placeholder:font-light"
+      <div className="flex flex-1 flex-col pt-[121px] md:pt-[72px]">
+        <TrustTopBar />
+
+        <section className="bg-white border-b border-brand-brown/5 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#fdfbf9] to-white pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-5 relative z-10 flex flex-col items-center">
+            
+            <div className="mb-1 w-full flex justify-center">
+              <img 
+                src="/logo-lumi-importadora.svg" 
+                alt="Lumi Imports" 
+                className="h-40 sm:h-44 w-auto object-contain drop-shadow-sm" 
               />
             </div>
             
-            <Button 
-              onClick={() => setIsMobileFiltersOpen(true)}
-              className="md:hidden h-16 w-16 px-0 rounded-full bg-white border border-brand-brown/10 text-brand-brown shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:bg-stone-50 flex items-center justify-center relative"
-            >
-              <Filter className="w-5 h-5" />
-              {hasActiveFilters && (
-                <span className="absolute top-4 right-4 w-2 h-2 bg-emerald-500 rounded-full"></span>
-              )}
-            </Button>
+            <h1 className="text-2xl md:text-4xl font-light tracking-tight text-brand-brown text-center mb-0 flex flex-col items-center gap-0">
+              A sua nova
+              <GradientText
+                colors={['#3D2B1F', '#a68a74', '#3D2B1F']}
+                animationSpeed={6}
+                showBorder={false}
+                className="font-extrabold pb-2 tracking-tight"
+              >
+                assinatura olfativa.
+              </GradientText>
+            </h1>
+            <p className="text-brand-brown/50 text-center max-w-lg text-xs md:text-sm tracking-wide">
+              Descubra fragrâncias importadas originais selecionadas criteriosamente.
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 lg:gap-12">
+        <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 lg:gap-12">
         
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-56 lg:w-64 shrink-0">
@@ -504,9 +525,9 @@ export default function Catalogo() {
             </div>
           )}
         </div>
-      </main>
+        </main>
 
-      <footer className="bg-white border-t border-brand-brown/5 mt-auto">
+        <footer className="bg-white border-t border-brand-brown/5 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
             <div className="space-y-4 flex flex-col items-center md:items-start">
@@ -566,7 +587,8 @@ export default function Catalogo() {
             </p>
           </div>
         </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }
