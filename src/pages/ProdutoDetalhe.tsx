@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
+import { Header } from '../components/Header';
 import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
@@ -23,6 +24,8 @@ export default function ProdutoDetalhe() {
     if (!id) return;
 
     const fetchProduct = async () => {
+      setLoading(true);
+
       try {
         setRelatedProducts([]);
         setImageLoaded(false);
@@ -135,16 +138,19 @@ export default function ProdutoDetalhe() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-bg font-sans pt-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-6 w-32 bg-stone-200 animate-pulse rounded-full mb-12"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-            <div className="aspect-[4/5] bg-stone-200 animate-pulse rounded-[2rem]"></div>
-            <div className="space-y-6 pt-8">
-              <div className="h-4 w-24 bg-stone-200 animate-pulse rounded-full"></div>
-              <div className="h-12 w-3/4 bg-stone-200 animate-pulse rounded-full"></div>
-              <div className="h-10 w-1/3 bg-stone-200 animate-pulse rounded-full mt-8"></div>
-              <div className="h-16 w-full bg-stone-200 animate-pulse rounded-2xl mt-12"></div>
+      <div className="min-h-screen bg-brand-bg font-sans">
+        <Header />
+        <div className="pt-[121px] md:pt-[72px]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <div className="h-6 w-32 bg-stone-200 animate-pulse rounded-full mb-12"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+              <div className="aspect-[4/5] bg-stone-200 animate-pulse rounded-[2rem]"></div>
+              <div className="space-y-6 pt-8">
+                <div className="h-4 w-24 bg-stone-200 animate-pulse rounded-full"></div>
+                <div className="h-12 w-3/4 bg-stone-200 animate-pulse rounded-full"></div>
+                <div className="h-10 w-1/3 bg-stone-200 animate-pulse rounded-full mt-8"></div>
+                <div className="h-16 w-full bg-stone-200 animate-pulse rounded-2xl mt-12"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -155,11 +161,14 @@ export default function ProdutoDetalhe() {
   if (!product) {
     return (
       <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center font-sans">
-        <Package className="w-16 h-16 text-brand-brown/20 mb-4" />
-        <h2 className="text-2xl text-brand-brown mb-6 font-light">Produto não encontrado</h2>
-        <Button onClick={() => navigate('/catalogo')} variant="outline" className="border-brand-brown/20 text-brand-brown">
-          Voltar ao Catálogo
-        </Button>
+        <Header />
+        <div className="flex flex-1 flex-col items-center justify-center px-4 pt-[121px] text-center md:pt-[72px]">
+          <Package className="w-16 h-16 text-brand-brown/20 mb-4" />
+          <h2 className="text-2xl text-brand-brown mb-6 font-light">Produto não encontrado</h2>
+          <Button onClick={() => navigate('/catalogo')} variant="outline" className="border-brand-brown/20 text-brand-brown">
+            Voltar ao Catálogo
+          </Button>
+        </div>
       </div>
     );
   }
@@ -173,22 +182,23 @@ export default function ProdutoDetalhe() {
 
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans selection:bg-brand-brown selection:text-brand-bg">
-      {/* Header / Nav */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-8 pb-4">
-        <button 
-          onClick={() => navigate('/catalogo')} 
-          className="flex items-center gap-2 text-brand-brown/60 hover:text-brand-brown transition-colors group"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          <span className="font-semibold text-sm tracking-wide uppercase">Catálogo</span>
-        </button>
-      </div>
+      <Header />
+      <div className="flex flex-1 flex-col pt-[121px] md:pt-[72px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-8 pb-4">
+          <button 
+            onClick={() => navigate('/catalogo')} 
+            className="flex items-center gap-2 text-brand-brown/60 hover:text-brand-brown transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-semibold text-sm tracking-wide uppercase">Catálogo</span>
+          </button>
+        </div>
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-start">
           
           {/* LADO ESQUERDO: Imagem do Produto */}
-          <div className="md:sticky md:top-8">
+          <div className="md:sticky md:top-28">
             <div className="aspect-[4/5] bg-[#fcfbf9] rounded-[2.5rem] overflow-hidden flex items-center justify-center p-8 shadow-[0_20px_60px_-15px_rgba(61,43,31,0.05)] border border-brand-brown/5 relative group">
               {isLowStock && (
                 <div className="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
@@ -419,6 +429,7 @@ export default function ProdutoDetalhe() {
           </section>
         )}
       </main>
+      </div>
     </div>
   );
 }

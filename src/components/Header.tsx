@@ -1,57 +1,246 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Filter, MessageCircle, Search, ShoppingBag } from 'lucide-react';
+import { Filter, Package, Search, ShoppingBag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
-import { useCart } from '../contexts/cart';
+import { supabase } from '../lib/supabase';
+import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
+import { useDebounce } from '../hooks/useDebounce';
+import type { Database } from '../types/supabase';
 
 const WHATSAPP_CONTACT_URL =
   'https://wa.me/5519982796873?text=Ol%C3%A1!%20Quero%20conhecer%20as%20fragr%C3%A2ncias%20da%20Lumi%20Imports.';
 
+type Product = Database['public']['Tables']['produtos']['Row'];
+
 type HeaderProps = {
-  searchValue: string;
-  onSearchChange: (value: string) => void;
-  onOpenCategories: () => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  onOpenCategories?: () => void;
 };
 
+function WhatsAppLogoIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+    >
+      <path d="M16 3.2A12.7 12.7 0 0 0 5.2 22.6L3.5 28.8l6.4-1.7A12.7 12.7 0 1 0 16 3.2Zm0 2.3a10.4 10.4 0 1 1-5.3 19.4l-.4-.2-3.8 1 1-3.7-.3-.4A10.4 10.4 0 0 1 16 5.5Zm-5.1 5.6c-.2 0-.5.1-.7.4-.2.3-.9.9-.9 2.2 0 1.3.9 2.5 1.1 2.7.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.6-.7 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.1-.2-.2-.5-.4l-1.8-.9c-.3-.1-.5-.2-.7.2l-.8 1c-.1.2-.3.2-.6.1-.3-.1-1.1-.4-2.1-1.3-.8-.7-1.3-1.6-1.5-1.8-.2-.3 0-.4.1-.6l.4-.4c.1-.1.2-.3.3-.5.1-.2.1-.3 0-.5l-.8-1.9c-.2-.4-.4-.4-.6-.4h-.6Z" />
+    </svg>
+  );
+}
+
 export function Header({ searchValue, onSearchChange, onOpenCategories }: HeaderProps) {
+  const navigate = useNavigate();
   const [showFilterHint, setShowFilterHint] = useState(true);
+  const [internalSearch, setInternalSearch] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const { totalItems, openCart } = useCart();
 
+  const hasFilterButton = Boolean(onOpenCategories);
+  const currentSearchValue = searchValue ?? internalSearch;
+  const debouncedSearch = useDebounce(currentSearchValue.trim(), 180);
+
   useEffect(() => {
+    if (!hasFilterButton) return;
+
     const timeout = window.setTimeout(() => {
       setShowFilterHint(false);
     }, 3000);
 
     return () => window.clearTimeout(timeout);
-  }, []);
+  }, [hasFilterButton]);
+
+  useEffect(() => {
+    if (debouncedSearch.length < 2) {
+      setSuggestions([]);
+      setSuggestionsLoading(false);
+      return;
+    }
+
+    let isActive = true;
+
+    const fetchSuggestions = async () => {
+      setSuggestionsLoading(true);
+
+      try {
+        const { data, error } = await supabase
+          .from('produtos')
+          .select('*')
+          .gt('estoque', 0)
+          .ilike('nome', `%${debouncedSearch}%`)
+          .order('mais_vendido', { ascending: false, nullsFirst: false })
+          .order('nome', { ascending: true })
+          .limit(6);
+
+        if (error) throw error;
+        if (isActive) setSuggestions(data ?? []);
+      } catch (error) {
+        console.error('Erro ao buscar sugestões:', error);
+        if (isActive) setSuggestions([]);
+      } finally {
+        if (isActive) setSuggestionsLoading(false);
+      }
+    };
+
+    fetchSuggestions();
+
+    return () => {
+      isActive = false;
+    };
+  }, [debouncedSearch]);
 
   const openWhatsApp = () => {
     window.open(WHATSAPP_CONTACT_URL, '_blank');
   };
 
+  const updateSearchValue = (value: string) => {
+    if (onSearchChange) {
+      onSearchChange(value);
+      return;
+    }
+
+    setInternalSearch(value);
+  };
+
   const openMobileFilters = () => {
     setShowFilterHint(false);
-    onOpenCategories();
+    onOpenCategories?.();
   };
+
+  const goToProduct = (product: Product) => {
+    updateSearchValue('');
+    setSearchFocused(false);
+    navigate(`/produto/${product.id}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const shouldShowSuggestions =
+    searchFocused && currentSearchValue.trim().length >= 2 && (suggestionsLoading || suggestions.length > 0);
+
+  const searchResults = (
+    <AnimatePresence>
+      {shouldShowSuggestions && (
+        <motion.div
+          initial={{ opacity: 0, y: -4, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -4, scale: 0.98 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-brand-brown/10 bg-white shadow-[0_18px_45px_rgba(61,43,31,0.14)]"
+        >
+          {suggestionsLoading ? (
+            <div className="space-y-2 p-3">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <div className="h-12 w-10 animate-pulse rounded-xl bg-stone-100" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-3/4 animate-pulse rounded-full bg-stone-100" />
+                    <div className="h-2.5 w-1/3 animate-pulse rounded-full bg-stone-100" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="max-h-80 overflow-y-auto p-2">
+              {suggestions.map((product) => {
+                const price = getProductSalePrice(product);
+
+                return (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      goToProduct(product);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-[#fcfbf9]"
+                  >
+                    <div className="flex h-14 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#fcfbf9]">
+                      {product.imagem_url ? (
+                        <img src={product.imagem_url} alt={product.nome} className="h-full w-full object-cover" />
+                      ) : (
+                        <Package className="h-5 w-5 text-brand-brown/15" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-brand-brown">
+                        {product.nome}
+                      </p>
+                      <p className="truncate text-[11px] font-medium uppercase tracking-[0.12em] text-brand-brown/40">
+                        {product.familia_olfativa || product.categoria || 'Fragrância'}
+                      </p>
+                    </div>
+
+                    <strong className="shrink-0 text-xs text-brand-brown">
+                      {formatBRL(price)}
+                    </strong>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const desktopSearchInput = (
+    <div className="relative mx-auto hidden w-full max-w-xl md:block">
+      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-brown/35" />
+      <Input
+        type="text"
+        placeholder="Buscar fragrância ou marca..."
+        value={currentSearchValue}
+        onFocus={() => setSearchFocused(true)}
+        onBlur={() => window.setTimeout(() => setSearchFocused(false), 120)}
+        onChange={(event) => updateSearchValue(event.target.value)}
+        className="h-11 rounded-full border-brand-brown/10 bg-[#fcfbf9] pl-11 pr-4 text-sm text-brand-brown shadow-inner placeholder:text-brand-brown/35 focus-visible:border-brand-brown/25 focus-visible:ring-1 focus-visible:ring-brand-brown/20"
+      />
+      {searchResults}
+    </div>
+  );
+
+  const mobileSearchInput = (
+    <div className="relative mx-auto max-w-xl">
+      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-brown/35" />
+      <Input
+        type="text"
+        placeholder="Buscar fragrância ou marca..."
+        value={currentSearchValue}
+        onFocus={() => setSearchFocused(true)}
+        onBlur={() => window.setTimeout(() => setSearchFocused(false), 120)}
+        onChange={(event) => updateSearchValue(event.target.value)}
+        className="h-10 rounded-full border-brand-brown/10 bg-[#fcfbf9] pl-11 pr-4 text-sm text-brand-brown shadow-inner placeholder:text-brand-brown/35 focus-visible:border-brand-brown/25 focus-visible:ring-1 focus-visible:ring-brand-brown/20"
+      />
+      {searchResults}
+    </div>
+  );
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-brand-brown/10 bg-white/95 shadow-[0_10px_30px_rgba(61,43,31,0.06)] backdrop-blur-xl">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8 md:h-[72px]">
-        <Button
-          type="button"
-          onClick={openMobileFilters}
-          variant="outline"
-          size="icon-lg"
-          className="md:hidden rounded-full border-brand-brown bg-brand-brown text-white shadow-[0_10px_24px_rgba(61,43,31,0.18)] hover:bg-[#2A1D15]"
-          aria-label="Abrir filtros"
-          title="Filtros"
-        >
-          <Filter className="h-5 w-5" />
-        </Button>
+        {hasFilterButton && (
+          <Button
+            type="button"
+            onClick={openMobileFilters}
+            variant="outline"
+            size="icon-lg"
+            className="md:hidden rounded-full border-brand-brown bg-brand-brown text-white shadow-[0_10px_24px_rgba(61,43,31,0.18)] hover:bg-[#2A1D15]"
+            aria-label="Abrir filtros"
+            title="Filtros"
+          >
+            <Filter className="h-5 w-5" />
+          </Button>
+        )}
 
         <AnimatePresence>
-          {showFilterHint && (
+          {hasFilterButton && showFilterHint && (
             <motion.div
               initial={{ opacity: 0, y: -4, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -79,16 +268,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
           />
         </a>
 
-        <div className="relative mx-auto hidden w-full max-w-xl md:block">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-brown/35" />
-          <Input
-            type="text"
-            placeholder="Buscar fragrância ou marca..."
-            value={searchValue}
-            onChange={(event) => onSearchChange(event.target.value)}
-            className="h-11 rounded-full border-brand-brown/10 bg-[#fcfbf9] pl-11 pr-4 text-sm text-brand-brown shadow-inner placeholder:text-brand-brown/35 focus-visible:border-brand-brown/25 focus-visible:ring-1 focus-visible:ring-brand-brown/20"
-          />
-        </div>
+        {desktopSearchInput}
 
         <div className="ml-auto flex items-center gap-2">
           <Button
@@ -99,7 +279,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
             aria-label="Contato pelo WhatsApp"
             title="WhatsApp"
           >
-            <MessageCircle className="h-4 w-4" />
+            <WhatsAppLogoIcon className="h-4 w-4" />
             <span className="hidden text-xs font-bold sm:inline">WhatsApp</span>
           </Button>
 
@@ -122,16 +302,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
       </div>
 
       <div className="border-t border-brand-brown/5 px-4 pb-3 md:hidden">
-        <div className="relative mx-auto max-w-xl">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-brown/35" />
-          <Input
-            type="text"
-            placeholder="Buscar fragrância ou marca..."
-            value={searchValue}
-            onChange={(event) => onSearchChange(event.target.value)}
-            className="h-10 rounded-full border-brand-brown/10 bg-[#fcfbf9] pl-11 pr-4 text-sm text-brand-brown shadow-inner placeholder:text-brand-brown/35 focus-visible:border-brand-brown/25 focus-visible:ring-1 focus-visible:ring-brand-brown/20"
-          />
-        </div>
+        {mobileSearchInput}
       </div>
     </header>
   );
