@@ -79,6 +79,20 @@ export function Inventory({ trips, products, refetch }: Props) {
 
   const handleGenerateAI = async () => {
     if (!name) return alert('Digite o nome do perfume primeiro para a IA buscar os detalhes.');
+    const hasManualAIData = [
+      notasTopo,
+      notasCoracao,
+      notasFundo,
+      familiaOlfativa,
+      ocasiao,
+      descricaoIa,
+      inspiradoEm,
+    ].some(value => value.trim() !== '') || tipo !== 'Importado';
+
+    if (hasManualAIData && !confirm('Gerar IA vai sobrescrever os detalhes da fragrância já preenchidos. Deseja continuar?')) {
+      return;
+    }
+
     setGeneratingAI(true);
     try {
       const data = await enrichPerfumeData(name);
@@ -270,60 +284,61 @@ export function Inventory({ trips, products, refetch }: Props) {
             </div>
 
             {/* AI Generated Fields Area */}
-            {(notasTopo || familiaOlfativa || generatingAI) && (
-              <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 space-y-4">
-                <div className="flex items-center gap-2 mb-2">
+            <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 space-y-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-purple-500" />
                   <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">Lumi AI Enricher</span>
                 </div>
-                
-                {generatingAI ? (
-                  <div className="animate-pulse space-y-3">
-                    <div className="h-4 bg-purple-200/50 rounded w-full"></div>
-                    <div className="h-4 bg-purple-200/50 rounded w-3/4"></div>
-                    <div className="h-4 bg-purple-200/50 rounded w-5/6"></div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-brand-brown/60">Família Olfativa</Label>
-                        <Input value={familiaOlfativa} onChange={(e) => setFamiliaOlfativa(e.target.value)} className="h-8 text-sm" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-brand-brown/60">Ocasião</Label>
-                        <Input value={ocasiao} onChange={(e) => setOcasiao(e.target.value)} className="h-8 text-sm" />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-brand-brown/60">Notas de Topo</Label>
-                      <Input value={notasTopo} onChange={(e) => setNotasTopo(e.target.value)} className="h-8 text-sm" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-brand-brown/60">Notas de Coração</Label>
-                      <Input value={notasCoracao} onChange={(e) => setNotasCoracao(e.target.value)} className="h-8 text-sm" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-brand-brown/60">Notas de Fundo</Label>
-                      <Input value={notasFundo} onChange={(e) => setNotasFundo(e.target.value)} className="h-8 text-sm" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-brand-brown/60">Descrição Comercial (IA)</Label>
-                      <textarea 
-                        value={descricaoIa} 
-                        onChange={(e) => setDescricaoIa(e.target.value)} 
-                        className="w-full text-sm p-2 rounded-md border border-purple-200 bg-white focus:outline-none focus:ring-1 focus:ring-purple-400"
-                        rows={3}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-brand-brown/60">Inspirado Em (Contratipo/Árabe) - Opcional</Label>
-                      <Input value={inspiradoEm} onChange={(e) => setInspiradoEm(e.target.value)} placeholder="Ex: Creed Aventus" className="h-8 text-sm" />
-                    </div>
-                  </>
-                )}
+                <p className="text-xs text-brand-brown/50">Preencha manualmente ou use Gerar IA para completar estes campos.</p>
               </div>
-            )}
+                
+              {generatingAI ? (
+                <div className="animate-pulse space-y-3">
+                  <div className="h-4 bg-purple-200/50 rounded w-full"></div>
+                  <div className="h-4 bg-purple-200/50 rounded w-3/4"></div>
+                  <div className="h-4 bg-purple-200/50 rounded w-5/6"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-brand-brown/60">Família Olfativa</Label>
+                      <Input value={familiaOlfativa} onChange={(e) => setFamiliaOlfativa(e.target.value)} className="h-8 text-sm" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-brand-brown/60">Ocasião</Label>
+                      <Input value={ocasiao} onChange={(e) => setOcasiao(e.target.value)} className="h-8 text-sm" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-brand-brown/60">Notas de Topo</Label>
+                    <Input value={notasTopo} onChange={(e) => setNotasTopo(e.target.value)} className="h-8 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-brand-brown/60">Notas de Coração</Label>
+                    <Input value={notasCoracao} onChange={(e) => setNotasCoracao(e.target.value)} className="h-8 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-brand-brown/60">Notas de Fundo</Label>
+                    <Input value={notasFundo} onChange={(e) => setNotasFundo(e.target.value)} className="h-8 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-brand-brown/60">Descrição Comercial (IA)</Label>
+                    <textarea 
+                      value={descricaoIa} 
+                      onChange={(e) => setDescricaoIa(e.target.value)} 
+                      className="w-full text-sm p-2 rounded-md border border-purple-200 bg-white focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-brand-brown/60">Inspirado Em (Contratipo/Árabe) - Opcional</Label>
+                    <Input value={inspiradoEm} onChange={(e) => setInspiradoEm(e.target.value)} placeholder="Ex: Creed Aventus" className="h-8 text-sm" />
+                  </div>
+                </>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="space-y-2">
