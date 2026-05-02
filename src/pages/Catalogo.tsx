@@ -2,13 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Package, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone, Heart } from 'lucide-react';
+import { Package, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
-import GradientText from '../components/GradientText';
 import { formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
 import { Header } from '../components/Header';
 import { FaqSection, type FaqItem } from '../components/FaqSection';
@@ -24,6 +23,34 @@ type CatalogFilters = {
 };
 
 const PRODUCTS_PER_PAGE = 28;
+
+type HeroSlide = {
+  id: string;
+  desktopImage: string;
+  mobileImage: string;
+  alt: string;
+  href: string;
+  clickable: boolean;
+};
+
+const heroSlides: HeroSlide[] = [
+  {
+    id: 'perfumes-arabes',
+    desktopImage: 'banner-geral.webp',
+    mobileImage: 'banner-geral-MOBILE.webp',
+    alt: 'Banner LUMI Imports com perfumes árabes e importados selecionados',
+    href: '#catalogo',
+    clickable: true,
+  },
+  {
+    id: 'dia-das-maes',
+    desktopImage: 'banner-diadasmaes.webp',
+    mobileImage: 'banner-diadasmaes-MOBILE.webp',
+    alt: 'Promoção de Dia das Mães da LUMI Imports com perfumes com 30% off',
+    href: '/dia-das-maes',
+    clickable: true,
+  },
+];
 
 // Componente individual de Card para gerenciar o estado 'expanded'
 function ProductCard({ product, handleAddToCart }: { product: Product, handleAddToCart: (product: Product) => void }) {
@@ -267,6 +294,7 @@ export default function Catalogo() {
   const [loading, setLoading] = useState(true);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
   const catalogSectionRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const { addItem } = useCart();
@@ -311,6 +339,14 @@ export default function Catalogo() {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setCurrentHeroSlide((currentSlide) => (currentSlide + 1) % heroSlides.length);
+    }, 6000);
+
+    return () => window.clearInterval(interval);
   }, []);
 
   const handleAddToCart = (product: Product) => {
@@ -397,6 +433,17 @@ export default function Catalogo() {
     window.setTimeout(() => {
       catalogSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 0);
+  };
+
+  const handleHeroClick = (slide: HeroSlide) => {
+    if (!slide.clickable) return;
+
+    if (slide.href.startsWith('#')) {
+      catalogSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    navigate(slide.href);
   };
 
   const filterContent = (
@@ -493,40 +540,54 @@ export default function Catalogo() {
       <div className="flex flex-1 flex-col pt-[121px] md:pt-[72px]">
         <TrustTopBar />
 
-        <section className="bg-white border-b border-brand-brown/5 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#fdfbf9] to-white pointer-events-none" />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-5 relative z-10 flex flex-col items-center">
-            
-            <div className="mb-1 w-full flex justify-center">
-              <img 
-                src="/logo-lumi-importadora.svg" 
-                alt="Lumi Imports" 
-                className="h-40 sm:h-44 w-auto object-contain drop-shadow-sm" 
-              />
+        <section className="relative border-b border-brand-brown/5 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <div className="relative overflow-hidden rounded-[1.75rem] border border-brand-brown/10 bg-stone-100 shadow-[0_18px_50px_-35px_rgba(61,43,31,0.45)]">
+              <AnimatePresence mode="wait">
+                {heroSlides.map((slide, index) => (
+                  index === currentHeroSlide && (
+                    <motion.button
+                      key={slide.id}
+                      type="button"
+                      onClick={() => handleHeroClick(slide)}
+                      initial={{ opacity: 0, scale: 1.015 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.995 }}
+                      transition={{ duration: 0.65, ease: 'easeOut' }}
+                      className="block w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown/35 focus-visible:ring-offset-2"
+                      aria-label={slide.alt}
+                    >
+                      <picture>
+                        <source media="(min-width: 768px)" srcSet={slide.desktopImage} />
+                        <img
+                          src={slide.mobileImage}
+                          alt={slide.alt}
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                          className="aspect-[4/5] w-full bg-stone-100 object-cover sm:aspect-[16/7] lg:aspect-[21/8]"
+                        />
+                      </picture>
+                    </motion.button>
+                  )
+                ))}
+              </AnimatePresence>
+
+              <div className="absolute bottom-3 left-0 right-0 z-10 flex justify-center gap-2 sm:bottom-4">
+                {heroSlides.map((slide, index) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    onClick={() => setCurrentHeroSlide(index)}
+                    className={`h-2 rounded-full border border-white/70 shadow-sm transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/90 ${
+                      index === currentHeroSlide
+                        ? 'w-7 bg-white'
+                        : 'w-2 bg-white/45 hover:bg-white/75'
+                    }`}
+                    aria-label={`Ir para o banner ${index + 1}`}
+                    aria-current={index === currentHeroSlide}
+                  />
+                ))}
+              </div>
             </div>
-            
-            <h1 className="text-2xl md:text-4xl font-light tracking-tight text-brand-brown text-center mb-0 flex flex-col items-center gap-0">
-              A sua nova
-              <GradientText
-                colors={['#3D2B1F', '#a68a74', '#3D2B1F']}
-                animationSpeed={6}
-                showBorder={false}
-                className="font-extrabold pb-2 tracking-tight"
-              >
-                assinatura olfativa.
-              </GradientText>
-            </h1>
-            <p className="text-brand-brown/50 text-center max-w-lg text-xs md:text-sm tracking-wide">
-              Descubra fragrâncias importadas originais selecionadas criteriosamente.
-            </p>
-            <Button
-              type="button"
-              onClick={() => navigate('/dia-das-maes')}
-              className="mt-5 h-11 rounded-full border border-rose-200 bg-rose-50 px-5 text-xs font-bold uppercase tracking-[0.18em] text-rose-900 shadow-sm hover:bg-rose-100"
-            >
-              <Heart className="h-4 w-4 text-rose-700" />
-              Especial Dia das Mães
-            </Button>
           </div>
         </section>
 
@@ -640,7 +701,7 @@ export default function Catalogo() {
               )}
 
               {/* Catálogo Completo */}
-              <section ref={catalogSectionRef} className="scroll-mt-32">
+              <section id="catalogo" ref={catalogSectionRef} className="scroll-mt-32">
                 <div className="flex items-center justify-between mb-5">
                   <div>
                     <h2 className="text-base font-medium text-brand-brown tracking-tight">
