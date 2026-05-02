@@ -48,6 +48,8 @@ export interface Database {
           categoria: string | null
           imagem_url: string | null
           preco_venda_brl: number | null
+          preco_promocao_brl: number | null
+          promocao_ativa: boolean
           notas_topo: string | null
           notas_coracao: string | null
           notas_fundo: string | null
@@ -70,6 +72,8 @@ export interface Database {
           categoria?: string | null
           imagem_url?: string | null
           preco_venda_brl?: number | null
+          preco_promocao_brl?: number | null
+          promocao_ativa?: boolean
           notas_topo?: string | null
           notas_coracao?: string | null
           notas_fundo?: string | null
@@ -92,6 +96,8 @@ export interface Database {
           categoria?: string | null
           imagem_url?: string | null
           preco_venda_brl?: number | null
+          preco_promocao_brl?: number | null
+          promocao_ativa?: boolean
           notas_topo?: string | null
           notas_coracao?: string | null
           notas_fundo?: string | null

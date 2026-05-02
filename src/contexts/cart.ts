@@ -39,8 +39,25 @@ export const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 };
 
-export const getProductSalePrice = (product: Product) => {
+export const getProductRegularPrice = (product: Product) => {
   return product.preco_venda_brl || ((product.custo_final_brl || 0) * 1.30);
+};
+
+export const hasActivePromotion = (product: Product) => {
+  const regularPrice = getProductRegularPrice(product);
+
+  return Boolean(
+    product.promocao_ativa &&
+    product.preco_promocao_brl &&
+    product.preco_promocao_brl > 0 &&
+    product.preco_promocao_brl < regularPrice
+  );
+};
+
+export const getProductSalePrice = (product: Product) => {
+  return hasActivePromotion(product)
+    ? (product.preco_promocao_brl as number)
+    : getProductRegularPrice(product);
 };
 
 export function useCart() {

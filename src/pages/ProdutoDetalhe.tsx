@@ -4,11 +4,11 @@ import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Header } from '../components/Header';
 import { FaqSection, type FaqItem } from '../components/FaqSection';
-import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles, BadgePercent } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
-import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
+import { formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -198,6 +198,8 @@ export default function ProdutoDetalhe() {
   }
 
   const precoVenda = getProductSalePrice(product);
+  const precoRegular = getProductRegularPrice(product);
+  const isPromotion = hasActivePromotion(product);
   const installmentValue = calculateInstallment(precoVenda, 12);
   const isLowStock = product.estoque > 0 && product.estoque <= 2;
   const outOfStock = product.estoque <= 0;
@@ -290,9 +292,22 @@ export default function ProdutoDetalhe() {
               
               {/* Preço e Parcelamento */}
               <div className="flex flex-col gap-2">
-                <span className="text-4xl sm:text-5xl font-extrabold text-brand-brown tracking-tighter">
-                  {formatBRL(precoVenda)}
-                </span>
+                {isPromotion && (
+                  <div className="flex w-max items-center gap-2 rounded-full bg-rose-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-800">
+                    <BadgePercent className="h-3.5 w-3.5" />
+                    Promoção ativa
+                  </div>
+                )}
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  {isPromotion && (
+                    <span className="text-xl font-bold text-brand-brown/35 line-through decoration-rose-700/70 sm:text-2xl">
+                      {formatBRL(precoRegular)}
+                    </span>
+                  )}
+                  <span className={`text-4xl sm:text-5xl font-extrabold ${isPromotion ? 'text-rose-800' : 'text-brand-brown'}`}>
+                    {formatBRL(precoVenda)}
+                  </span>
+                </div>
                 <span className="text-brand-brown/60 flex items-center gap-2 font-medium">
                   <CreditCard className="w-5 h-5 opacity-70" /> 
                   em até 12x de {formatBRL(installmentValue)} no cartão

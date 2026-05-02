@@ -3,13 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Button } from './ui/Button';
-import { Package, DollarSign, Percent, Plus, Sparkles, Flame } from 'lucide-react';
+import { BadgePercent, Package, DollarSign, Percent, Plus, Sparkles, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
 import { enrichPerfumeData } from '../lib/gemini';
 
 type Trip = Database['public']['Tables']['viagens']['Row'];
 type Product = Database['public']['Tables']['produtos']['Row'];
+
+const parseDecimalInput = (value: string) => {
+  const parsed = parseFloat(value.replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : 0;
+};
 
 interface Props {
   trips: Trip[];
@@ -26,6 +31,8 @@ export function Inventory({ trips, products, refetch }: Props) {
   const [margin, setMargin] = useState('30');
   const [extraCost, setExtraCost] = useState('');
   const [customPrice, setCustomPrice] = useState('');
+  const [promotionPrice, setPromotionPrice] = useState('');
+  const [promotionActive, setPromotionActive] = useState(false);
   const [quantity, setQuantity] = useState('1');
   const [category, setCategory] = useState('Unissex');
   const [tipo, setTipo] = useState('Importado');
@@ -51,9 +58,9 @@ export function Inventory({ trips, products, refetch }: Props) {
   const activeTrip = trips.find(t => t.id === selectedTrip);
 
   const results = useMemo(() => {
-    const costU = parseFloat(priceUSD.replace(',', '.')) || 0;
-    const marg = parseFloat(margin.replace(',', '.')) || 0;
-    const extra = parseFloat(extraCost.replace(',', '.')) || 0;
+    const costU = parseDecimalInput(priceUSD);
+    const marg = parseDecimalInput(margin);
+    const extra = parseDecimalInput(extraCost);
 
     if (!activeTrip || costU <= 0) {
       return { costBRL: 0, suggestedPrice: 0, grossProfit: 0 };
@@ -113,9 +120,15 @@ export function Inventory({ trips, products, refetch }: Props) {
 
   const handleSaveProduct = async () => {
     if (!selectedTrip || !name || !priceUSD) return alert('Preencha os campos obrigatórios');
+
+    const parsedPromotionPrice = promotionPrice ? parseDecimalInput(promotionPrice) : null;
+    if (promotionActive && (!parsedPromotionPrice || parsedPromotionPrice <= 0)) {
+      return alert('Informe um preço promocional válido ou desative a promoção.');
+    }
+
     setLoading(true);
 
-    const costU = parseFloat(priceUSD.replace(',', '.'));
+    const costU = parseDecimalInput(priceUSD);
     const qty = parseInt(quantity, 10);
 
     let imageUrl = editingProduct ? editingProduct.imagem_url : null;
@@ -147,7 +160,9 @@ export function Inventory({ trips, products, refetch }: Props) {
       estoque: qty,
       categoria: category,
       imagem_url: imageUrl,
-      preco_venda_brl: customPrice ? parseFloat(customPrice.replace(',', '.')) : null,
+      preco_venda_brl: customPrice ? parseDecimalInput(customPrice) : null,
+      preco_promocao_brl: parsedPromotionPrice,
+      promocao_ativa: promotionActive,
       notas_topo: notasTopo,
       notas_coracao: notasCoracao,
       notas_fundo: notasFundo,
@@ -189,6 +204,8 @@ export function Inventory({ trips, products, refetch }: Props) {
     setVolume(p.volume || '100ml');
     setExtraCost('0');
     setCustomPrice(p.preco_venda_brl ? p.preco_venda_brl.toString() : '');
+    setPromotionPrice(p.preco_promocao_brl ? p.preco_promocao_brl.toString() : '');
+    setPromotionActive(p.promocao_ativa || false);
     setImagePreview(p.imagem_url || '');
     
     // IA Fields
@@ -222,6 +239,8 @@ export function Inventory({ trips, products, refetch }: Props) {
     setPriceUSD('');
     setExtraCost('');
     setCustomPrice('');
+    setPromotionPrice('');
+    setPromotionActive(false);
     setQuantity('1');
     setImageFile(null);
     setImagePreview('');
@@ -484,6 +503,44 @@ export function Inventory({ trips, products, refetch }: Props) {
               </div>
             </div>
 
+            <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-4 space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <BadgePercent className="h-4 w-4 text-rose-700" />
+                    <Label htmlFor="promocao_ativa" className="text-sm font-bold text-rose-900">
+                      Promoção ativa
+                    </Label>
+                  </div>
+                  <p className="text-xs text-rose-900/60">
+                    Quando ativo, o catálogo, carrinho e campanhas usam este valor.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="promocao_ativa"
+                  checked={promotionActive}
+                  onChange={(e) => setPromotionActive(e.target.checked)}
+                  className="h-5 w-5 rounded border-rose-300 text-rose-700 focus:ring-rose-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-rose-950">Preço Promocional (BRL)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-rose-700/60" />
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Ex: 249,90"
+                    className="pl-9 border-rose-200 bg-white text-rose-950 focus-visible:ring-rose-500"
+                    value={promotionPrice}
+                    onChange={(e) => setPromotionPrice(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-brand-brown">Quantidade Comprada</Label>
               <Input 
@@ -542,10 +599,21 @@ export function Inventory({ trips, products, refetch }: Props) {
                 <div className="relative z-10">
                   <p className="text-sm font-medium text-brand-bg/80 mb-1">Seu Preço de Venda Real</p>
                   <div className="text-4xl font-extrabold tracking-tight text-brand-bg">
-                    {customPrice ? formatCurrency(parseFloat(customPrice.replace(',', '.'))) : formatCurrency(results.suggestedPrice)}
+                    {customPrice ? formatCurrency(parseDecimalInput(customPrice)) : formatCurrency(results.suggestedPrice)}
                   </div>
                 </div>
               </div>
+
+              {promotionActive && promotionPrice && (
+                <div className="rounded-xl bg-rose-700 border border-rose-700 p-6 shadow-sm relative overflow-hidden">
+                  <div className="relative z-10">
+                    <p className="text-sm font-medium text-rose-50/80 mb-1">Preço Promocional Ativo</p>
+                    <div className="text-4xl font-extrabold tracking-tight text-white">
+                      {formatCurrency(parseDecimalInput(promotionPrice))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -568,6 +636,7 @@ export function Inventory({ trips, products, refetch }: Props) {
                   <th className="px-4 py-3">Categoria</th>
                   <th className="px-4 py-3">Custo BRL</th>
                   <th className="px-4 py-3">Preço Venda</th>
+                  <th className="px-4 py-3">Promoção</th>
                   <th className="px-4 py-3">Estoque</th>
                   <th className="px-4 py-3 text-right rounded-tr-md">Ações</th>
                 </tr>
@@ -575,7 +644,7 @@ export function Inventory({ trips, products, refetch }: Props) {
               <tbody>
                 {products.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-brand-brown/50">
+                    <td colSpan={9} className="text-center py-8 text-brand-brown/50">
                       Nenhum produto cadastrado no momento.
                     </td>
                   </tr>
@@ -604,6 +673,20 @@ export function Inventory({ trips, products, refetch }: Props) {
                       <td className="px-4 py-3 font-medium text-brand-brown/70">{formatCurrency(p.custo_final_brl)}</td>
                       <td className="px-4 py-3 font-bold text-brand-brown">
                         {p.preco_venda_brl ? formatCurrency(p.preco_venda_brl) : formatCurrency(p.custo_final_brl * 1.30)}
+                      </td>
+                      <td className="px-4 py-3">
+                        {p.promocao_ativa && p.preco_promocao_brl ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="font-bold text-rose-700">
+                              {formatCurrency(p.preco_promocao_brl)}
+                            </span>
+                            <span className="w-max rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-800">
+                              Ativa
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-brand-brown/35">-</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${p.estoque > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>

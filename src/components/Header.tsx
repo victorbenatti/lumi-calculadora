@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Filter, Package, Search, ShoppingBag } from 'lucide-react';
+import { Filter, Heart, Package, Search, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
@@ -271,6 +271,18 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
         {desktopSearchInput}
 
         <div className="ml-auto flex items-center gap-2">
+          <Button
+            type="button"
+            onClick={() => navigate('/dia-das-maes')}
+            variant="outline"
+            className="hidden h-10 rounded-full border-rose-200 bg-rose-50 px-3 text-rose-800 hover:bg-rose-100 md:flex"
+            aria-label="Especial Dia das Mães"
+            title="Especial Dia das Mães"
+          >
+            <Heart className="h-4 w-4" />
+            <span className="text-xs font-bold">Dia das Mães</span>
+          </Button>
+
           <Button
             type="button"
             onClick={openWhatsApp}

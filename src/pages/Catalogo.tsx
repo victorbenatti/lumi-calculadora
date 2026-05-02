@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Package, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone } from 'lucide-react';
+import { Package, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
 import GradientText from '../components/GradientText';
-import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
+import { formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
 import { Header } from '../components/Header';
 import { FaqSection, type FaqItem } from '../components/FaqSection';
 
@@ -33,6 +33,8 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
   const { getItemQuantity } = useCart();
 
   const precoVenda = getProductSalePrice(product);
+  const regularPrice = getProductRegularPrice(product);
+  const isPromotion = hasActivePromotion(product);
   const installmentValue = calculateInstallment(precoVenda);
   const isLowStock = product.estoque <= 2;
   const cartQuantity = getItemQuantity(product.id);
@@ -166,9 +168,21 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
         </AnimatePresence>
         
         <div className="mt-2 flex flex-col gap-0.5">
-          <span className="text-lg font-bold text-brand-brown tracking-tight">
-            {formatBRL(precoVenda)}
-          </span>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            {isPromotion && (
+              <span className="text-[11px] font-semibold text-brand-brown/35 line-through decoration-rose-700/60">
+                {formatBRL(regularPrice)}
+              </span>
+            )}
+            <span className={`text-lg font-bold ${isPromotion ? 'text-rose-800' : 'text-brand-brown'}`}>
+              {formatBRL(precoVenda)}
+            </span>
+          </div>
+          {isPromotion && (
+            <span className="w-max rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-rose-800">
+              Promo
+            </span>
+          )}
           <div className="flex items-center gap-1 text-[10px] text-brand-brown/50 font-medium">
             <CreditCard className="w-3 h-3 opacity-60" />
             <span>12x de {formatBRL(installmentValue)}</span>
@@ -254,6 +268,7 @@ export default function Catalogo() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const catalogSectionRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
   const { addItem } = useCart();
 
   const [filters, setFilters] = useState<CatalogFilters>({
@@ -504,6 +519,14 @@ export default function Catalogo() {
             <p className="text-brand-brown/50 text-center max-w-lg text-xs md:text-sm tracking-wide">
               Descubra fragrâncias importadas originais selecionadas criteriosamente.
             </p>
+            <Button
+              type="button"
+              onClick={() => navigate('/dia-das-maes')}
+              className="mt-5 h-11 rounded-full border border-rose-200 bg-rose-50 px-5 text-xs font-bold uppercase tracking-[0.18em] text-rose-900 shadow-sm hover:bg-rose-100"
+            >
+              <Heart className="h-4 w-4 text-rose-700" />
+              Especial Dia das Mães
+            </Button>
           </div>
         </section>
 
