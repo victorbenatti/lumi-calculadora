@@ -248,6 +248,13 @@ export default function DiaDasMaes() {
     window.open(WHATSAPP_GIFT_HELP_URL, '_blank');
   };
 
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#fff9fa] font-sans text-brand-brown selection:bg-rose-800 selection:text-white">
       <Header />
@@ -297,12 +304,14 @@ export default function DiaDasMaes() {
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <a href="#presentes">
-                    <Button className="h-12 w-full rounded-full bg-rose-800 px-6 text-sm font-bold text-white shadow-[0_16px_32px_rgba(159,70,95,0.22)] hover:bg-rose-950 sm:w-auto">
-                      <Heart className="h-4 w-4" />
-                      Ver presentes
-                    </Button>
-                  </a>
+                  <Button
+                    type="button"
+                    onClick={() => scrollToSection('presentes')}
+                    className="h-12 w-full rounded-full bg-rose-800 px-6 text-sm font-bold text-white shadow-[0_16px_32px_rgba(159,70,95,0.22)] hover:bg-rose-950 sm:w-auto"
+                  >
+                    <Heart className="h-4 w-4" />
+                    Ver presentes
+                  </Button>
                   <Button
                     type="button"
                     onClick={openGiftHelp}

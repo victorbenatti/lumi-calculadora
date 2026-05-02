@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Package, CreditCard, ShoppingBag, ShieldCheck, Lock, Truck, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Instagram, Phone } from 'lucide-react';
+import { ArrowRight, BadgePercent, Package, CreditCard, ShoppingBag, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
@@ -591,6 +591,37 @@ export default function Catalogo() {
           </div>
         </section>
 
+        <section className="bg-brand-bg px-4 pt-4 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            onClick={() => navigate('/dia-das-maes')}
+            className="group mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-2xl border border-rose-100 bg-white px-4 py-4 text-left shadow-[0_10px_30px_rgba(135,65,85,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-[0_16px_38px_rgba(135,65,85,0.12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-800/25 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+            aria-label="Ver promoção de Dia das Mães da Lumi Imports"
+          >
+            <div className="flex items-start gap-3 sm:items-center">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-800 ring-1 ring-rose-100">
+                <BadgePercent className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-rose-800/70">
+                  Especial Dia das Mães
+                </p>
+                <h2 className="mt-1 text-base font-bold leading-snug text-brand-brown sm:text-lg">
+                  Perfumes selecionados com até 30% OFF
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-brand-brown/55 sm:text-sm">
+                  Encontre presentes elegantes com curadoria Lumi e finalize pelo WhatsApp.
+                </p>
+              </div>
+            </div>
+
+            <span className="flex w-full items-center justify-center gap-2 rounded-full bg-rose-800 px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white transition-colors group-hover:bg-rose-900 sm:w-auto sm:shrink-0">
+              Ver ofertas
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </button>
+        </section>
+
         <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 lg:gap-12">
         
         {/* Desktop Sidebar */}
@@ -792,67 +823,6 @@ export default function Catalogo() {
           </div>
         </section>
 
-        <footer className="bg-white border-t border-brand-brown/5 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
-            <div className="space-y-4 flex flex-col items-center md:items-start">
-              <img src="/logo-lumi-importadora.svg" alt="Lumi Imports" className="h-22 w-auto opacity-90 drop-shadow-sm" />
-              <p className="text-sm text-brand-brown/50 font-light max-w-xs">
-                A sua boutique de alta perfumaria. Seleção exclusiva das melhores fragrâncias internacionais.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-sm font-bold text-brand-brown uppercase tracking-wider">Atendimento</h4>
-              <ul className="space-y-2 text-sm text-brand-brown/60 font-light">
-                <li>Segunda a Sábado</li>
-                <li>09:00 às 18:00</li>
-                <li>Envio para todo o Brasil</li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-sm font-bold text-brand-brown uppercase tracking-wider">Contato</h4>
-              <ul className="space-y-3 text-sm text-brand-brown/60 font-light">
-                <li className="flex items-center gap-2 justify-center md:justify-start">
-                  <Phone className="w-4 h-4 text-brand-brown/40" />
-                  <span>(19) 98279-6873</span>
-                </li>
-                <li className="flex items-center gap-2 justify-center md:justify-start">
-                  <Instagram className="w-4 h-4 text-brand-brown/40" />
-                  <a href="https://instagram.com/lumi.importadora" target="_blank" rel="noopener noreferrer" className="hover:text-brand-brown transition-colors">
-                    @lumi.importadora
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-sm font-bold text-brand-brown uppercase tracking-wider text-center md:text-left">Garantia Lumi</h4>
-              <div className="flex flex-col gap-3 items-center md:items-start text-sm text-brand-brown/60 font-light">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600/70" />
-                  <span>Produtos 100% Originais</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-brand-brown/50" />
-                  <span>Compra 100% Segura</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-brand-brown/50" />
-                  <span>Entrega Rastreada</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-12 pt-8 border-t border-brand-brown/5 text-center flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-brand-brown/40 font-light">
-              &copy; {new Date().getFullYear()} Lumi Imports Store. Todos os direitos reservados.
-            </p>
-            <p className="text-xs text-brand-brown/40 font-light flex items-center gap-1">
-              Ambiente Seguro <Lock className="w-3 h-3" />
-            </p>
-          </div>
-        </div>
-        </footer>
       </div>
     </div>
   );

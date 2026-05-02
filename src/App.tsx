@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Analytics } from './components/Analytics';
 import { CartDrawer } from './components/CartDrawer';
+import { Footer } from './components/Footer';
 import { CartProvider } from './contexts/CartContext';
 
 // Code Splitting - Carregamento preguiçoso das páginas
@@ -20,9 +21,23 @@ const PageLoader = () => (
   </div>
 );
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
+  const location = useLocation();
+  const showFooter = !location.pathname.startsWith('/admin') && location.pathname !== '/login';
+
   return (
     <CartProvider>
+      <ScrollToTop />
       <Analytics />
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -41,6 +56,7 @@ function App() {
           <Route path="/produto/:id" element={<ProdutoDetalhe />} />
         </Routes>
       </Suspense>
+      {showFooter && <Footer />}
       <CartDrawer />
     </CartProvider>
   );
