@@ -5,6 +5,13 @@ import { Label } from './ui/Label';
 import { Button } from './ui/Button';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
+import {
+  calculateSaleFinancials,
+  DEFAULT_FINANCIAL_CONFIG,
+  formatCurrency,
+  getSaleFinancialRow,
+  type FinancialConfig,
+} from '../utils/finance';
 
 type Sale = Database['public']['Tables']['vendas']['Row'];
 type Product = Database['public']['Tables']['produtos']['Row'];
@@ -13,10 +20,11 @@ type SaleStatus = Sale['status_pagamento'];
 interface Props {
   sales: Sale[];
   products: Product[];
+  financialConfig?: FinancialConfig;
   refetch: () => void;
 }
 
-export function SalesTracker({ sales, products, refetch }: Props) {
+export function SalesTracker({ sales, products, financialConfig = DEFAULT_FINANCIAL_CONFIG, refetch }: Props) {
   const [selectedProduct, setSelectedProduct] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [salePrice, setSalePrice] = useState('');
@@ -74,12 +82,15 @@ export function SalesTracker({ sales, products, refetch }: Props) {
       if (stockError) throw stockError;
       if (!updatedStock) throw new Error('Não foi possível baixar o estoque. Tente novamente.');
 
+      const financialSnapshot = calculateSaleFinancials(priceNum, product.custo_final_brl, financialConfig);
       const saleRows = Array.from({ length: qty }, () => ({
         produto_id: selectedProduct,
         cliente: customerName,
         preco_venda: priceNum,
         status_pagamento: status,
-        data_venda: new Date().toISOString()
+        data_venda: new Date().toISOString(),
+        ...financialSnapshot,
+        financeiro_estimado: false
       }));
 
       const { error: saleError } = await supabase.from('vendas').insert(saleRows);
@@ -176,8 +187,6 @@ export function SalesTracker({ sales, products, refetch }: Props) {
     }
   };
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-
   const getStatusLabel = (status: SaleStatus) => {
     if (status === 'pago') return 'Pago';
     if (status === 'pendente') return 'Pendente';
@@ -190,23 +199,20 @@ export function SalesTracker({ sales, products, refetch }: Props) {
     return 'bg-red-100 text-red-800';
   };
 
-  // Calcula split de lucro
+  // Usa snapshots financeiros para preservar o historico da venda.
   const salesWithSplit = useMemo(() => {
     return sales.map(s => {
       const p = products.find(prod => prod.id === s.produto_id);
-      const cost = p ? p.custo_final_brl : 0;
-      const profit = s.preco_venda - cost;
-      const partnerSplit = profit / 2;
-      return { ...s, product_name: p?.nome || 'Desconhecido', cost, profit, partnerSplit };
+      return getSaleFinancialRow(s, p, financialConfig);
     });
-  }, [sales, products]);
+  }, [sales, products, financialConfig]);
 
   return (
     <div className="space-y-6">
       <Card className="bg-white shadow-sm border-brand-brown/10">
         <CardHeader>
           <CardTitle className="text-brand-brown">Registrar Venda</CardTitle>
-          <CardDescription className="text-brand-brown/70">O lucro é dividido em (Preço de Venda - Custo Real Final) / 2</CardDescription>
+          <CardDescription className="text-brand-brown/70">Cada venda salva custo, caixa de 10% sobre lucro bruto e split do lucro distribuível.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -269,8 +275,8 @@ export function SalesTracker({ sales, products, refetch }: Props) {
                   <th className="px-4 py-3">Data</th>
                   <th className="px-4 py-3">Cliente / Produto</th>
                   <th className="px-4 py-3">Venda / Custo</th>
-                  <th className="px-4 py-3">Lucro Total</th>
-                  <th className="px-4 py-3 text-emerald-700 font-bold">Split Parceiro (50%)</th>
+                  <th className="px-4 py-3">Lucro / Caixa</th>
+                  <th className="px-4 py-3 text-emerald-700 font-bold">Split Você / Mãe</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Ação</th>
                 </tr>
@@ -285,10 +291,16 @@ export function SalesTracker({ sales, products, refetch }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       <div>{formatCurrency(s.preco_venda)}</div>
-                      <div className="text-xs opacity-70">C: {formatCurrency(s.cost)}</div>
+                      <div className="text-xs opacity-70">C: {formatCurrency(s.custo_unitario_snapshot)}</div>
                     </td>
-                    <td className="px-4 py-3 font-medium">{formatCurrency(s.profit)}</td>
-                    <td className="px-4 py-3 text-emerald-700 font-bold bg-emerald-50/50">{formatCurrency(s.partnerSplit)}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{formatCurrency(s.lucro_bruto_snapshot)}</div>
+                      <div className="text-xs opacity-70">Caixa: {formatCurrency(s.reserva_caixa_snapshot)}</div>
+                    </td>
+                    <td className="px-4 py-3 text-emerald-700 font-bold bg-emerald-50/50">
+                      <div>{formatCurrency(s.lucro_voce_snapshot)} / {formatCurrency(s.lucro_mae_snapshot)}</div>
+                      {s.financeiro_estimado && <div className="text-[10px] uppercase tracking-wide text-amber-700">Estimado</div>}
+                    </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusClassName(s.status_pagamento)}`}>
                         {getStatusLabel(s.status_pagamento)}

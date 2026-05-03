@@ -8,7 +8,8 @@ import {
   Plane,
   ShoppingCart,
   LogOut,
-  Store
+  Store,
+  Landmark
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
@@ -25,13 +26,15 @@ import { DashboardOverview } from "../components/DashboardOverview";
 import { Inventory } from "../components/Inventory";
 import { TripManagement } from "../components/TripManagement";
 import { SalesTracker } from "../components/SalesTracker";
+import { FinancialDashboard } from "../components/FinancialDashboard";
+import { getActiveFinancialConfig } from "../utils/finance";
 
-type Tab = 'dashboard' | 'inventory' | 'trips' | 'sales';
+type Tab = 'dashboard' | 'inventory' | 'trips' | 'sales' | 'finance';
 
 export default function Admin() {
   const navigate = useNavigate();
   const { rate, loading: rateLoading, error: rateError, lastUpdated, isManualFallback, refetch: refetchRate, setManualRate } = useExchangeRate();
-  const { trips, products, sales, refetch: refetchERP } = useERP();
+  const { trips, products, sales, financialConfigs, financialWithdrawals, refetch: refetchERP } = useERP();
   
   const [iconError, setIconError] = useState(false);
   const [manualRateInput, setManualRateInput] = useState(rate ? rate.toString() : '');
@@ -39,6 +42,7 @@ export default function Admin() {
 
   const formattedRate = rate ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(rate) : '---';
   const timeString = lastUpdated ? lastUpdated.toLocaleTimeString('pt-BR') : '---';
+  const activeFinancialConfig = getActiveFinancialConfig(financialConfigs);
 
   const handleManualRateChange = (val: string) => {
     setManualRateInput(val);
@@ -57,7 +61,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen p-4 sm:p-8 md:p-12">
-      <div className="mx-auto max-w-5xl space-y-8 relative">
+      <div className="mx-auto max-w-6xl space-y-8 relative">
         
         {/* Catalog Button */}
         <div className="absolute top-0 left-0 mt-4 sm:mt-0">
@@ -184,14 +188,31 @@ export default function Admin() {
             <ShoppingCart className="h-4 w-4 mr-2" />
             Vendas
           </Button>
+          <Button
+            variant={activeTab === 'finance' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('finance')}
+            className={`snap-start min-w-[120px] ${activeTab === 'finance' ? 'bg-brand-brown text-brand-bg' : 'text-brand-brown border-brand-brown/20'}`}
+          >
+            <Landmark className="h-4 w-4 mr-2" />
+            Financeiro
+          </Button>
         </div>
 
         {/* View da Aba Ativa */}
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          {activeTab === 'dashboard' && <DashboardOverview sales={sales} products={products} trips={trips} />}
+          {activeTab === 'dashboard' && <DashboardOverview sales={sales} products={products} trips={trips} financialConfig={activeFinancialConfig} />}
           {activeTab === 'trips' && <TripManagement trips={trips} refetch={refetchERP} exchangeRate={rate} />}
           {activeTab === 'inventory' && <Inventory trips={trips} products={products} refetch={refetchERP} />}
-          {activeTab === 'sales' && <SalesTracker sales={sales} products={products} refetch={refetchERP} />}
+          {activeTab === 'sales' && <SalesTracker sales={sales} products={products} financialConfig={activeFinancialConfig} refetch={refetchERP} />}
+          {activeTab === 'finance' && (
+            <FinancialDashboard
+              sales={sales}
+              products={products}
+              financialConfig={activeFinancialConfig}
+              financialWithdrawals={financialWithdrawals}
+              refetch={refetchERP}
+            />
+          )}
         </div>
       </div>
     </div>

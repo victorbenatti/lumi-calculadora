@@ -2,6 +2,13 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
 import { CircleDollarSign, TrendingUp, HandCoins } from 'lucide-react';
 import type { Database } from '../types/supabase';
+import {
+  buildFinancialRows,
+  DEFAULT_FINANCIAL_CONFIG,
+  formatCurrency,
+  summarizeFinancialRows,
+  type FinancialConfig,
+} from '../utils/finance';
 
 type Sale = Database['public']['Tables']['vendas']['Row'];
 type Product = Database['public']['Tables']['produtos']['Row'];
@@ -11,34 +18,21 @@ interface Props {
   sales: Sale[];
   products: Product[];
   trips: Trip[];
+  financialConfig?: FinancialConfig;
 }
 
-export function DashboardOverview({ sales, products, trips }: Props) {
+export function DashboardOverview({ sales, products, trips, financialConfig = DEFAULT_FINANCIAL_CONFIG }: Props) {
   const { totalRevenue, netProfit, roi } = useMemo(() => {
-    let revenue = 0;
-    let totalCostOfSold = 0;
-
-    sales.forEach(sale => {
-      if (sale.status_pagamento === 'pago') {
-        revenue += sale.preco_venda;
-        const product = products.find(p => p.id === sale.produto_id);
-        if (product) {
-          totalCostOfSold += product.custo_final_brl;
-        }
-      }
-    });
-
-    const net = revenue - totalCostOfSold;
-    const returnOnInvest = totalCostOfSold > 0 ? (net / totalCostOfSold) * 100 : 0;
+    const rows = buildFinancialRows(sales, products, financialConfig, 'all');
+    const summary = summarizeFinancialRows(rows);
+    const returnOnInvest = summary.cost > 0 ? (summary.grossProfit / summary.cost) * 100 : 0;
 
     return {
-      totalRevenue: revenue,
-      netProfit: net,
+      totalRevenue: summary.revenue,
+      netProfit: summary.grossProfit,
       roi: returnOnInvest
     };
-  }, [sales, products]);
-
-  const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  }, [sales, products, financialConfig]);
 
   return (
     <div className="space-y-6">
@@ -58,7 +52,7 @@ export function DashboardOverview({ sales, products, trips }: Props) {
 
           <div className="rounded-xl bg-[#e3eedd] border border-emerald-900/10 p-4 shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-emerald-900/80">Lucro Líquido</p>
+              <p className="text-sm font-medium text-emerald-900/80">Lucro Bruto</p>
               <h3 className="text-2xl font-bold text-emerald-900 mt-1">{formatCurrency(netProfit)}</h3>
             </div>
             <HandCoins className="text-emerald-900/30 h-8 w-8" />
