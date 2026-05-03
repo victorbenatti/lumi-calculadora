@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { ArrowRight, BadgePercent, Package, CreditCard, ShoppingBag, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X } from 'lucide-react';
+import { ArrowRight, BadgePercent, Package, CreditCard, ShoppingBag, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Gem, Gift, Plane } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
@@ -23,6 +23,26 @@ type CatalogFilters = {
 };
 
 const PRODUCTS_PER_PAGE = 28;
+const POCKET_COLLECTION_FILTER = 'Brand Collection 30ml';
+
+const normalizeCatalogValue = (value: string | null) =>
+  (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const isPocketCollectionProduct = (product: Product) => {
+  const volume = normalizeCatalogValue(product.volume);
+  const tipo = normalizeCatalogValue(product.tipo);
+  const name = normalizeCatalogValue(product.nome);
+
+  return (
+    /\b30\s*ml\b/.test(volume) ||
+    tipo.includes('contratipo') ||
+    tipo.includes('brand collection') ||
+    name.includes('brand collection')
+  );
+};
 
 type HeroSlide = {
   id: string;
@@ -232,6 +252,83 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
   );
 }
 
+function PocketPerfumesSection({
+  products,
+  handleAddToCart,
+  onViewCollection,
+}: {
+  products: Product[];
+  handleAddToCart: (product: Product) => void;
+  onViewCollection: () => void;
+}) {
+  if (products.length === 0) return null;
+
+  const featuredProducts = products.slice(0, 4);
+  const referenceCount = products.filter(product => product.inspirado_em).length;
+
+  return (
+    <section className="border-y border-brand-brown/10 bg-white/65 py-6 sm:rounded-2xl sm:border sm:px-5 sm:shadow-[0_10px_35px_rgba(61,43,31,0.04)]">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-900 ring-1 ring-amber-100">
+              <Gem className="h-4 w-4" />
+            </span>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brand-brown/45">
+              Coleção secundária
+            </p>
+          </div>
+          <h2 className="text-lg font-semibold tracking-tight text-brand-brown">
+            Perfumes de bolso 30ml
+          </h2>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-brand-brown/55 sm:text-sm">
+            Contratipos premium em tamanho prático, inspirados em grandes ícones da perfumaria para bolsa, viagem, presente ou teste de fragrância.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onViewCollection}
+          className="h-10 w-full rounded-full border-brand-brown/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.16em] text-brand-brown hover:bg-stone-50 sm:w-auto"
+        >
+          Ver 30ml
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="mb-5 grid grid-cols-3 gap-2 text-brand-brown/60">
+        {[
+          { label: 'Bolsa', icon: ShoppingBag },
+          { label: 'Viagem', icon: Plane },
+          { label: 'Presente', icon: Gift },
+        ].map(({ label, icon: Icon }) => (
+          <div key={label} className="flex items-center justify-center gap-1.5 rounded-full border border-brand-brown/10 bg-[#fcfbf9] px-2 py-2 text-[10px] font-bold uppercase tracking-[0.12em]">
+            <Icon className="h-3.5 w-3.5" />
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        {featuredProducts.map(product => (
+          <ProductCard
+            key={`pocket-${product.id}`}
+            product={product}
+            handleAddToCart={handleAddToCart}
+          />
+        ))}
+      </div>
+
+      {referenceCount > 0 && (
+        <p className="mt-4 text-[11px] leading-5 text-brand-brown/45">
+          As referências olfativas ajudam a orientar a escolha e não indicam afiliação oficial com marcas citadas.
+        </p>
+      )}
+    </section>
+  );
+}
+
 const trustMessages = [
   'Produtos 100% Originais',
   'Envio Rastreado para todo o Brasil',
@@ -360,11 +457,29 @@ export default function Catalogo() {
     }
   };
 
+  const pocketCollectionProducts = useMemo(() => {
+    return products
+      .filter(isPocketCollectionProduct)
+      .sort((a, b) => getProductSalePrice(a) - getProductSalePrice(b));
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     const filtered = products.filter(p => {
-      const matchesSearch = p.nome.toLowerCase().includes(filters.search.toLowerCase());
+      const searchTerm = normalizeCatalogValue(filters.search);
+      const searchableValues = [
+        p.nome,
+        p.categoria,
+        p.tipo,
+        p.volume,
+        p.inspirado_em,
+        p.familia_olfativa,
+      ];
+      const matchesSearch = searchTerm.length === 0 || searchableValues.some(value =>
+        normalizeCatalogValue(value).includes(searchTerm)
+      );
       const matchesCategory = filters.categoria === 'Todos' || p.categoria === filters.categoria;
-      const matchesTipo = filters.tipo === 'Todos' || p.tipo === filters.tipo;
+      const matchesTipo = filters.tipo === 'Todos' ||
+        (filters.tipo === POCKET_COLLECTION_FILTER ? isPocketCollectionProduct(p) : p.tipo === filters.tipo);
       
       let matchesPrice = true;
       const preco = getProductSalePrice(p);
@@ -449,6 +564,21 @@ export default function Catalogo() {
     navigate(slide.href);
   };
 
+  const showPocketCollection = () => {
+    setFilters(prev => ({
+      ...prev,
+      tipo: POCKET_COLLECTION_FILTER,
+      ordenacao: 'Menor Preço',
+    }));
+    setIsMobileFiltersOpen(false);
+
+    window.setTimeout(() => {
+      catalogSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  };
+
+  const tipoFilterOptions = ['Todos', 'Importado', 'Árabe', POCKET_COLLECTION_FILTER];
+
   const filterContent = (
     <div className="space-y-8">
       {hasActiveFilters && (
@@ -498,10 +628,10 @@ export default function Catalogo() {
 
       <div className="space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
-          <Globe className="w-3.5 h-3.5" /> Origem
+          <Globe className="w-3.5 h-3.5" /> Origem e Linha
         </h3>
         <div className="flex flex-col gap-3">
-          {['Todos', 'Importado', 'Árabe'].map(tipo => (
+          {tipoFilterOptions.map(tipo => (
             <button key={tipo} onClick={() => setFilterValue('tipo', tipo)} className="flex items-center gap-3 cursor-pointer group text-left">
               <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${filters.tipo === tipo ? 'border-brand-brown bg-brand-brown' : 'border-brand-brown/30 group-hover:border-brand-brown/60'}`}>
                 {filters.tipo === tipo && <div className="w-1.5 h-1.5 bg-brand-bg rounded-full" />}
@@ -713,6 +843,12 @@ export default function Catalogo() {
             </div>
           ) : (
             <div className="space-y-16">
+              <PocketPerfumesSection
+                products={pocketCollectionProducts}
+                handleAddToCart={handleAddToCart}
+                onViewCollection={showPocketCollection}
+              />
+
               {/* Seção Mais Vendidos - Apenas se Favoritos estiverem nos resultados filtrados */}
               {filteredProducts.filter(p => p.mais_vendido).length > 0 && (
                 <section>

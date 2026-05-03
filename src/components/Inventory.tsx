@@ -16,6 +16,8 @@ const parseDecimalInput = (value: string) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const productTypeOptions = ['Importado', 'Árabe', 'Brand Collection', 'Contratipo'];
+
 interface Props {
   trips: Trip[];
   products: Product[];
@@ -384,14 +386,15 @@ export function Inventory({ trips, products, refetch }: Props) {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label className="text-brand-brown">Origem</Label>
+                <Label className="text-brand-brown">Origem / Linha</Label>
                 <select 
                   value={tipo} 
                   onChange={(e) => setTipo(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown text-brand-brown"
                 >
-                  <option value="Importado">Importado</option>
-                  <option value="Árabe">Árabe</option>
+                  {productTypeOptions.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-2">
@@ -723,7 +726,7 @@ export function Inventory({ trips, products, refetch }: Props) {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-xs text-brand-brown/60">
-                        {p.tipo === 'Árabe' ? 'Árabe' : 'Importado'}
+                        {p.tipo || 'Importado'}
                       </td>
                       <td className="px-4 py-3">{p.categoria || '-'}</td>
                       <td className="px-4 py-3 font-medium text-brand-brown/70">{formatCurrency(p.custo_final_brl)}</td>
