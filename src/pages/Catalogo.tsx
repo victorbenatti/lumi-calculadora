@@ -563,6 +563,7 @@ export default function Catalogo() {
                           src={slide.mobileImage}
                           alt={slide.alt}
                           loading={index === 0 ? 'eager' : 'lazy'}
+                          fetchPriority={index === 0 ? 'high' : 'auto'}
                           className="aspect-[4/5] w-full bg-stone-100 object-cover sm:aspect-[16/7] lg:aspect-[21/8]"
                         />
                       </picture>
