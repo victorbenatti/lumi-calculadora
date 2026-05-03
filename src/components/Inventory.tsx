@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Button } from './ui/Button';
-import { BadgePercent, Package, DollarSign, Percent, Plus, Sparkles, Flame } from 'lucide-react';
+import { BadgePercent, Package, DollarSign, Percent, Plus, Sparkles, Flame, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
 import { enrichPerfumeData } from '../lib/gemini';
@@ -17,6 +17,11 @@ const parseDecimalInput = (value: string) => {
 };
 
 const productTypeOptions = ['Importado', 'Árabe', 'Brand Collection', 'Contratipo'];
+
+type SaveFeedback = {
+  mode: 'created' | 'updated';
+  productName: string;
+};
 
 interface Props {
   trips: Trip[];
@@ -58,6 +63,7 @@ export function Inventory({ trips, products, refetch }: Props) {
   const [inventoryCategoryFilter, setInventoryCategoryFilter] = useState('Todas');
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
 
   const activeTrip = trips.find(t => t.id === selectedTrip);
 
@@ -146,6 +152,8 @@ export function Inventory({ trips, products, refetch }: Props) {
   const handleSaveProduct = async () => {
     if (!selectedTrip || !name || !priceUSD) return alert('Preencha os campos obrigatórios');
 
+    const productName = name.trim();
+    const saveMode = editingProduct ? 'updated' : 'created';
     const parsedPromotionPrice = promotionPrice ? parseDecimalInput(promotionPrice) : null;
     if (promotionActive && (!parsedPromotionPrice || parsedPromotionPrice <= 0)) {
       return alert('Informe um preço promocional válido ou desative a promoção.');
@@ -216,6 +224,8 @@ export function Inventory({ trips, products, refetch }: Props) {
     } else {
       handleCancelEdit();
       refetch();
+      setSaveFeedback({ mode: saveMode, productName });
+      window.setTimeout(() => setSaveFeedback(null), 4500);
     }
   };
 
@@ -587,6 +597,23 @@ export function Inventory({ trips, products, refetch }: Props) {
                 </Button>
               )}
             </div>
+
+            {saveFeedback && (
+              <div
+                role="status"
+                className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-900 shadow-sm"
+              >
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <div>
+                  <p className="text-sm font-bold">
+                    {saveFeedback.mode === 'created' ? 'Produto cadastrado com sucesso' : 'Produto atualizado com sucesso'}
+                  </p>
+                  <p className="text-xs text-emerald-900/70">
+                    {saveFeedback.productName} já está salvo no estoque.
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
