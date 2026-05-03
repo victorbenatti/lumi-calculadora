@@ -99,6 +99,9 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
               <img 
                 src={product.imagem_url} 
                 alt={product.nome} 
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
                 onLoad={() => setImageLoaded(true)}
                 className={`w-full h-full object-cover transition-transform duration-700 ${
                   imageLoaded ? 'opacity-100 scale-100 group-hover:scale-105' : 'opacity-0 scale-95'
