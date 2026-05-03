@@ -268,6 +268,22 @@ export default function DiaDasMaes() {
           </div>
         </div>
 
+        <section className="border-b border-rose-100 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <picture>
+              <source media="(min-width: 768px)" srcSet="/banner-diadasmaes.webp" />
+              <img
+                src="/banner-diadasmaes-MOBILE.webp"
+                alt="Campanha Dia das Mães Lumi Imports"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="w-full rounded-[1.75rem] border border-rose-100 object-cover shadow-[0_18px_50px_-35px_rgba(135,65,85,0.45)]"
+              />
+            </picture>
+          </div>
+        </section>
+
         <section className="relative overflow-hidden border-b border-rose-200/70 bg-[#fff7f8]">
           <div className="absolute inset-0 bg-[linear-gradient(135deg,#fff7f8_0%,#ffffff_48%,#f8e2e7_100%)]" />
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
