@@ -52,6 +52,8 @@ export function Inventory({ trips, products, refetch }: Props) {
   
   const [loading, setLoading] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventoryCategoryFilter, setInventoryCategoryFilter] = useState('Todas');
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -75,6 +77,27 @@ export function Inventory({ trips, products, refetch }: Props) {
       grossProfit: suggestedPrice - costBRLFinal
     };
   }, [priceUSD, margin, extraCost, activeTrip]);
+
+  const inventoryCategories = useMemo(() => {
+    const uniqueCategories = new Set(
+      products
+        .map(product => product.categoria?.trim())
+        .filter((value): value is string => Boolean(value))
+    );
+
+    return ['Todas', ...Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    const searchTerm = inventorySearch.trim().toLowerCase();
+
+    return products.filter(product => {
+      const matchesName = !searchTerm || product.nome.toLowerCase().includes(searchTerm);
+      const matchesCategory = inventoryCategoryFilter === 'Todas' || product.categoria === inventoryCategoryFilter;
+
+      return matchesName && matchesCategory;
+    });
+  }, [products, inventorySearch, inventoryCategoryFilter]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -623,9 +646,36 @@ export function Inventory({ trips, products, refetch }: Props) {
       <Card className="bg-white border-brand-brown/10 shadow-sm">
         <CardHeader>
           <CardTitle className="text-brand-brown">Produtos Cadastrados</CardTitle>
-          <CardDescription className="text-brand-brown/70">Gerencie o estoque, altere preços e atualize fotos.</CardDescription>
+          <CardDescription className="text-brand-brown/70">
+            Gerencie o estoque, altere preços e atualize fotos. Exibindo {filteredProducts.length} de {products.length} produtos.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+            <div className="space-y-2">
+              <Label className="text-brand-brown">Pesquisar por nome</Label>
+              <Input
+                type="search"
+                value={inventorySearch}
+                onChange={(e) => setInventorySearch(e.target.value)}
+                placeholder="Ex: Yara, Asad, Club de Nuit..."
+                className="border-brand-brown/20 text-brand-brown"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-brand-brown">Categoria</Label>
+              <select
+                value={inventoryCategoryFilter}
+                onChange={(e) => setInventoryCategoryFilter(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
+              >
+                {inventoryCategories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-brand-brown/80">
               <thead className="text-xs uppercase bg-brand-bg text-brand-brown/60">
@@ -648,8 +698,14 @@ export function Inventory({ trips, products, refetch }: Props) {
                       Nenhum produto cadastrado no momento.
                     </td>
                   </tr>
+                ) : filteredProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="text-center py-8 text-brand-brown/50">
+                      Nenhum produto encontrado com os filtros atuais.
+                    </td>
+                  </tr>
                 ) : (
-                  products.map(p => (
+                  filteredProducts.map(p => (
                     <tr key={p.id} className="border-b border-brand-brown/5 hover:bg-brand-bg/50 transition-colors">
                       <td className="px-4 py-3">
                         {p.imagem_url ? (

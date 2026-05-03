@@ -33,7 +33,9 @@ function ScrollToTop() {
 
 function App() {
   const location = useLocation();
-  const showFooter = !location.pathname.startsWith('/admin') && location.pathname !== '/login';
+  const isAdminArea = location.pathname.startsWith('/admin') || location.pathname === '/login';
+  const showFooter = !isAdminArea;
+  const showCart = !isAdminArea;
 
   return (
     <CartProvider>
@@ -57,7 +59,7 @@ function App() {
         </Routes>
       </Suspense>
       {showFooter && <Footer />}
-      <CartDrawer />
+      {showCart && <CartDrawer />}
     </CartProvider>
   );
 }
