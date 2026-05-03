@@ -9,6 +9,62 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      clientes: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          nome: string | null
+          whatsapp: string | null
+          email: string
+          cep: string | null
+          logradouro: string | null
+          numero: string | null
+          complemento: string | null
+          bairro: string | null
+          cidade: string | null
+          estado: string | null
+        }
+        Insert: {
+          id: string
+          created_at?: string
+          updated_at?: string
+          nome?: string | null
+          whatsapp?: string | null
+          email: string
+          cep?: string | null
+          logradouro?: string | null
+          numero?: string | null
+          complemento?: string | null
+          bairro?: string | null
+          cidade?: string | null
+          estado?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          nome?: string | null
+          whatsapp?: string | null
+          email?: string
+          cep?: string | null
+          logradouro?: string | null
+          numero?: string | null
+          complemento?: string | null
+          bairro?: string | null
+          cidade?: string | null
+          estado?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       viagens: {
         Row: {
           id: string

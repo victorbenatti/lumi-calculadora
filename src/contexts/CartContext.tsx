@@ -7,6 +7,7 @@ import {
   type CartItem,
   type Product,
 } from './cart';
+import { useCustomer } from './customer';
 
 const WHATSAPP_NUMBER = '5519982796873';
 const CART_STORAGE_KEY = 'lumi-cart-items';
@@ -52,6 +53,7 @@ const loadStoredItems = (): CartItem[] => {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(loadStoredItems);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { profile } = useCustomer();
 
   useEffect(() => {
     try {
@@ -156,8 +158,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return `${quantityText} - ${priceText}`;
     });
 
+    const customerLines = profile
+      ? [
+          '',
+          'Dados do cliente:',
+          profile.nome ? `Nome: ${profile.nome}` : null,
+          profile.whatsapp ? `WhatsApp: ${profile.whatsapp}` : null,
+          profile.email ? `E-mail: ${profile.email}` : null,
+          [profile.logradouro, profile.numero, profile.complemento].filter(Boolean).join(', '),
+          [profile.bairro, profile.cidade, profile.estado].filter(Boolean).join(' - '),
+          profile.cep ? `CEP: ${profile.cep}` : null,
+        ].filter(Boolean)
+      : [];
+
     const text = encodeURIComponent(
-      `Olá! Quero os itens:\n${lines.join('\n')}\nTotal: ${formatBRL(totalPrice)}\n\nValores sujeitos à confirmação de disponibilidade.`
+      [
+        'Olá! Quero os itens:',
+        lines.join('\n'),
+        `Total: ${formatBRL(totalPrice)}`,
+        ...customerLines,
+        '',
+        'Valores sujeitos à confirmação de disponibilidade.',
+      ].join('\n')
     );
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank');

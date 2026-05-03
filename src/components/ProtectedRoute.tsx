@@ -5,19 +5,54 @@ import type { Session } from '@supabase/supabase-js';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [isAdminSession, setIsAdminSession] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
+    const verifyAdminAccess = async (currentSession: Session | null) => {
+      setSession(currentSession);
+
+      if (!currentSession) {
+        setIsAdminSession(false);
+        setLoading(false);
+        return;
+      }
+
+      const role =
+        currentSession.user.app_metadata?.role ||
+        currentSession.user.user_metadata?.role;
+
+      if (role === 'admin') {
+        setIsAdminSession(true);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('clientes')
+          .select('id')
+          .eq('id', currentSession.user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        setIsAdminSession(!data);
+      } catch (error) {
+        console.error('Erro ao verificar perfil de cliente:', error);
+        setIsAdminSession(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      void verifyAdminAccess(currentSession);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoading(false);
+      void verifyAdminAccess(session);
     });
 
     return () => subscription.unsubscribe();
@@ -34,6 +69,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!session) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdminSession) {
+    return <Navigate to="/catalogo" replace />;
   }
 
   return <>{children}</>;

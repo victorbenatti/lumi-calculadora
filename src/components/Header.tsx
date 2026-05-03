@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Filter, Heart, Package, Search, ShoppingBag } from 'lucide-react';
+import { ChevronDown, Filter, Heart, LogOut, Package, Search, ShoppingBag, UserRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { supabase } from '../lib/supabase';
 import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
+import { useCustomer } from '../contexts/customer';
 import { useDebounce } from '../hooks/useDebounce';
 import type { Database } from '../types/supabase';
 
@@ -40,11 +41,14 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
   const [searchFocused, setSearchFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const { totalItems, openCart } = useCart();
+  const { profile, profileLoading, signOut } = useCustomer();
 
   const hasFilterButton = Boolean(onOpenCategories);
   const currentSearchValue = searchValue ?? internalSearch;
   const debouncedSearch = useDebounce(currentSearchValue.trim(), 180);
+  const accountLabel = profile?.nome || profile?.email || 'Cliente Lumi';
 
   useEffect(() => {
     if (!hasFilterButton) return;
@@ -111,6 +115,16 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
   const openMobileFilters = () => {
     setShowFilterHint(false);
     onOpenCategories?.();
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setIsAccountMenuOpen(false);
+      navigate('/catalogo');
+    } catch (error) {
+      console.error('Erro ao sair da conta de cliente:', error);
+    }
   };
 
   const goToProduct = (product: Product) => {
@@ -294,6 +308,81 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
             <WhatsAppLogoIcon className="h-4 w-4" />
             <span className="hidden text-xs font-bold sm:inline">WhatsApp</span>
           </Button>
+
+          {profile ? (
+            <div className="relative">
+              <Button
+                type="button"
+                onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}
+                variant="outline"
+                className="h-10 rounded-full border-brand-brown/15 bg-white px-3 text-brand-brown hover:bg-stone-50 md:px-4"
+                aria-label="Abrir perfil de cliente"
+                aria-expanded={isAccountMenuOpen}
+                title="Perfil"
+              >
+                <UserRound className="h-4 w-4" />
+                <span className="hidden max-w-24 truncate text-xs font-bold lg:inline">
+                  {accountLabel}
+                </span>
+                <ChevronDown className="hidden h-3.5 w-3.5 opacity-50 sm:block" />
+              </Button>
+
+              <AnimatePresence>
+                {isAccountMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.16, ease: 'easeOut' }}
+                    className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-brand-brown/10 bg-white shadow-[0_18px_45px_rgba(61,43,31,0.14)]"
+                  >
+                    <div className="border-b border-brand-brown/10 bg-[#fcfbf9] px-4 py-3">
+                      <p className="truncate text-sm font-semibold text-brand-brown">
+                        {accountLabel}
+                      </p>
+                      <p className="truncate text-xs text-brand-brown/45">
+                        Dados salvos para próximas compras
+                      </p>
+                    </div>
+                    <div className="p-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAccountMenuOpen(false);
+                          navigate('/perfil');
+                        }}
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-brand-brown transition-colors hover:bg-stone-50"
+                      >
+                        <UserRound className="h-4 w-4 text-brand-brown/50" />
+                        Meu perfil
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-brand-brown/65 transition-colors hover:bg-red-50 hover:text-red-800"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sair
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => navigate('/entrar')}
+              variant="outline"
+              disabled={profileLoading}
+              className="h-10 rounded-full border-brand-brown/15 bg-white px-3 text-brand-brown hover:bg-stone-50 md:px-4"
+              aria-label="Entrar como cliente"
+              title="Entrar"
+            >
+              <UserRound className="h-4 w-4" />
+              <span className="hidden text-xs font-bold sm:inline">Entrar</span>
+            </Button>
+          )}
 
           <Button
             type="button"

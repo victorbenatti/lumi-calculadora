@@ -5,10 +5,14 @@ import { Analytics } from './components/Analytics';
 import { CartDrawer } from './components/CartDrawer';
 import { Footer } from './components/Footer';
 import { CartProvider } from './contexts/CartContext';
+import { CustomerProvider } from './contexts/CustomerContext';
 
 // Code Splitting - Carregamento preguiçoso das páginas
 const Admin = lazy(() => import('./pages/Admin'));
 const Catalogo = lazy(() => import('./pages/Catalogo'));
+const ClienteLogin = lazy(() => import('./pages/ClienteLogin'));
+const ClientePerfil = lazy(() => import('./pages/ClientePerfil'));
+const ClienteRedefinirSenha = lazy(() => import('./pages/ClienteRedefinirSenha'));
 const DiaDasMaes = lazy(() => import('./pages/DiaDasMaes'));
 const Login = lazy(() => import('./pages/Login'));
 const ProdutoDetalhe = lazy(() => import('./pages/ProdutoDetalhe'));
@@ -38,29 +42,34 @@ function App() {
   const showCart = !isAdminArea;
 
   return (
-    <CartProvider>
-      <ScrollToTop />
-      <Analytics />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/catalogo" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute>
-                <Admin />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="/catalogo" element={<Catalogo />} />
-          <Route path="/dia-das-maes" element={<DiaDasMaes />} />
-          <Route path="/produto/:id" element={<ProdutoDetalhe />} />
-        </Routes>
-      </Suspense>
-      {showFooter && <Footer />}
-      {showCart && <CartDrawer />}
-    </CartProvider>
+    <CustomerProvider>
+      <CartProvider>
+        <ScrollToTop />
+        <Analytics />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/catalogo" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/entrar" element={<ClienteLogin />} />
+            <Route path="/perfil" element={<ClientePerfil />} />
+            <Route path="/redefinir-senha" element={<ClienteRedefinirSenha />} />
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/catalogo" element={<Catalogo />} />
+            <Route path="/dia-das-maes" element={<DiaDasMaes />} />
+            <Route path="/produto/:id" element={<ProdutoDetalhe />} />
+          </Routes>
+        </Suspense>
+        {showFooter && <Footer />}
+        {showCart && <CartDrawer />}
+      </CartProvider>
+    </CustomerProvider>
   );
 }
 
