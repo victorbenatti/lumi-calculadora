@@ -35,7 +35,7 @@ import {
 type Product = Database['public']['Tables']['produtos']['Row'];
 
 const WHATSAPP_GIFT_HELP_URL =
-  'https://wa.me/5519982796873?text=Ol%C3%A1!%20Quero%20ajuda%20para%20escolher%20um%20presente%20de%20Dia%20das%20M%C3%A3es%20na%20Lumi%20Imports.';
+  'https://wa.me/5519974113885?text=Ol%C3%A1!%20Quero%20ajuda%20para%20escolher%20um%20presente%20de%20Dia%20das%20M%C3%A3es%20na%20Lumi%20Imports.';
 
 const mothersDayFaqItems: FaqItem[] = [
   {
