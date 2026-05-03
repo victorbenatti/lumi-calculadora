@@ -128,6 +128,15 @@ export interface Database {
           preco_venda: number
           status_pagamento: 'pago' | 'pendente' | 'cancelada'
           data_venda: string
+          custo_unitario_snapshot: number | null
+          reposicao_snapshot: number | null
+          lucro_bruto_snapshot: number | null
+          reserva_caixa_snapshot: number | null
+          lucro_distribuivel_snapshot: number | null
+          lucro_voce_snapshot: number | null
+          lucro_mae_snapshot: number | null
+          financeiro_estimado: boolean
+          financeiro_configuracao_id: string | null
         }
         Insert: {
           id?: string
@@ -137,6 +146,15 @@ export interface Database {
           preco_venda: number
           status_pagamento?: 'pago' | 'pendente' | 'cancelada'
           data_venda?: string
+          custo_unitario_snapshot?: number | null
+          reposicao_snapshot?: number | null
+          lucro_bruto_snapshot?: number | null
+          reserva_caixa_snapshot?: number | null
+          lucro_distribuivel_snapshot?: number | null
+          lucro_voce_snapshot?: number | null
+          lucro_mae_snapshot?: number | null
+          financeiro_estimado?: boolean
+          financeiro_configuracao_id?: string | null
         }
         Update: {
           id?: string
@@ -146,6 +164,15 @@ export interface Database {
           preco_venda?: number
           status_pagamento?: 'pago' | 'pendente' | 'cancelada'
           data_venda?: string
+          custo_unitario_snapshot?: number | null
+          reposicao_snapshot?: number | null
+          lucro_bruto_snapshot?: number | null
+          reserva_caixa_snapshot?: number | null
+          lucro_distribuivel_snapshot?: number | null
+          lucro_voce_snapshot?: number | null
+          lucro_mae_snapshot?: number | null
+          financeiro_estimado?: boolean
+          financeiro_configuracao_id?: string | null
         }
         Relationships: [
           {
@@ -156,6 +183,66 @@ export interface Database {
             referencedColumns: ["id"]
           }
         ]
+      }
+      financeiro_configuracoes: {
+        Row: {
+          id: string
+          created_at: string
+          nome: string
+          reposicao_percentual: number
+          caixa_percentual: number
+          split_voce_percentual: number
+          split_mae_percentual: number
+          ativo: boolean
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          nome?: string
+          reposicao_percentual?: number
+          caixa_percentual?: number
+          split_voce_percentual?: number
+          split_mae_percentual?: number
+          ativo?: boolean
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          nome?: string
+          reposicao_percentual?: number
+          caixa_percentual?: number
+          split_voce_percentual?: number
+          split_mae_percentual?: number
+          ativo?: boolean
+        }
+        Relationships: []
+      }
+      financeiro_retiradas: {
+        Row: {
+          id: string
+          created_at: string
+          pessoa: 'voce' | 'mae'
+          valor: number
+          data_retirada: string
+          observacao: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          pessoa: 'voce' | 'mae'
+          valor: number
+          data_retirada?: string
+          observacao?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          pessoa?: 'voce' | 'mae'
+          valor?: number
+          data_retirada?: string
+          observacao?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
