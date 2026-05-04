@@ -70,6 +70,14 @@ const heroSlides: HeroSlide[] = [
     href: '/dia-das-maes',
     clickable: true,
   },
+  {
+    id: 'brand-collection',
+    desktopImage: 'banner-brand-collection.webp',
+    mobileImage: 'banner-brand-collection-MOBILE.webp',
+    alt: 'Perfumes Brand Collection - 30ml',
+    href: '#catalogo',
+    clickable: true,
+  }
 ];
 
 // Componente individual de Card para gerenciar o estado 'expanded'
