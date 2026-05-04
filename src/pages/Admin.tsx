@@ -147,7 +147,15 @@ export default function Admin() {
       {activeTab === 'dashboard' && <DashboardOverview sales={sales} products={products} trips={trips} financialConfig={activeFinancialConfig} />}
       {activeTab === 'trips' && <TripManagement trips={trips} refetch={refetchERP} exchangeRate={rate} />}
       {activeTab === 'inventory' && <Inventory trips={trips} products={products} refetch={refetchERP} />}
-      {activeTab === 'sales' && <SalesTracker sales={sales} products={products} financialConfig={activeFinancialConfig} refetch={refetchERP} />}
+      {activeTab === 'sales' && (
+        <SalesTracker
+          sales={sales}
+          products={products}
+          financialConfig={activeFinancialConfig}
+          financialConfigs={financialConfigs}
+          refetch={refetchERP}
+        />
+      )}
       {activeTab === 'finance' && (
         <FinancialDashboard
           sales={sales}
