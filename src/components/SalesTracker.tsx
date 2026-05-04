@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Button } from './ui/Button';
+import { Pencil, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
 import {
@@ -21,22 +22,45 @@ interface Props {
   sales: Sale[];
   products: Product[];
   financialConfig?: FinancialConfig;
+  financialConfigs?: FinancialConfig[];
   refetch: () => void;
 }
 
-export function SalesTracker({ sales, products, financialConfig = DEFAULT_FINANCIAL_CONFIG, refetch }: Props) {
+export function SalesTracker({
+  sales,
+  products,
+  financialConfig = DEFAULT_FINANCIAL_CONFIG,
+  financialConfigs = [],
+  refetch
+}: Props) {
   const [selectedProduct, setSelectedProduct] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [salePrice, setSalePrice] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [status, setStatus] = useState<Exclude<SaleStatus, 'cancelada'>>('pago');
   const [loading, setLoading] = useState(false);
+  const [editingSale, setEditingSale] = useState<Sale | null>(null);
+  const [editSalePrice, setEditSalePrice] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const parseMoneyInput = (value: string) => {
+    const cleaned = value.trim().replace(/[^\d,.-]/g, '');
+    const normalized = cleaned.includes(',') && cleaned.includes('.')
+      ? cleaned.replace(/\./g, '').replace(',', '.')
+      : cleaned.replace(',', '.');
+
+    return parseFloat(normalized);
+  };
+
+  const getFinancialConfigForSale = (sale: Sale) => {
+    return financialConfigs.find(config => config.id === sale.financeiro_configuracao_id) || financialConfig;
+  };
 
   const handleAddSale = async () => {
     if (!selectedProduct || !customerName || !salePrice) return alert('Preencha os dados');
     setLoading(true);
 
-    const priceNum = parseFloat(salePrice.replace(',', '.'));
+    const priceNum = parseMoneyInput(salePrice);
     const qty = parseInt(quantity, 10);
 
     if (!Number.isFinite(priceNum) || priceNum <= 0) {
@@ -121,6 +145,62 @@ export function SalesTracker({ sales, products, financialConfig = DEFAULT_FINANC
     const newStatus = currStatus === 'pago' ? 'pendente' : 'pago';
     await supabase.from('vendas').update({ status_pagamento: newStatus }).eq('id', id);
     refetch();
+  };
+
+  const handleStartEditSale = (sale: Sale) => {
+    if (sale.status_pagamento === 'cancelada') return alert('Venda cancelada não pode ser editada.');
+    setEditingSale(sale);
+    setEditSalePrice(sale.preco_venda.toFixed(2).replace('.', ','));
+  };
+
+  const handleCloseEditSale = () => {
+    if (savingEdit) return;
+    setEditingSale(null);
+    setEditSalePrice('');
+  };
+
+  const handleUpdateSalePrice = async () => {
+    if (!editingSale) return;
+
+    const nextPrice = parseMoneyInput(editSalePrice);
+    if (!Number.isFinite(nextPrice) || nextPrice <= 0) {
+      return alert('Informe um novo preço de venda válido.');
+    }
+
+    setSavingEdit(true);
+    try {
+      const product = products.find(p => p.id === editingSale.produto_id);
+      const unitCost = editingSale.custo_unitario_snapshot ?? product?.custo_final_brl ?? 0;
+      const financialSnapshot = calculateSaleFinancials(
+        nextPrice,
+        unitCost,
+        getFinancialConfigForSale(editingSale)
+      );
+
+      const { data: updatedSale, error } = await supabase
+        .from('vendas')
+        .update({
+          preco_venda: nextPrice,
+          ...financialSnapshot,
+          financeiro_estimado: false
+        })
+        .eq('id', editingSale.id)
+        .neq('status_pagamento', 'cancelada')
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      if (!updatedSale) throw new Error('Não foi possível atualizar a venda. Tente novamente.');
+
+      setEditingSale(null);
+      setEditSalePrice('');
+      refetch();
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : 'Erro ao editar valor da venda');
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const handleCancelSale = async (sale: Sale) => {
@@ -209,6 +289,69 @@ export function SalesTracker({ sales, products, financialConfig = DEFAULT_FINANC
 
   return (
     <div className="space-y-6">
+      {editingSale && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-brown/45 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-lg border border-brand-brown/10 bg-white p-5 shadow-2xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-brown/45">Editar venda</p>
+                <h3 className="mt-1 text-lg font-bold text-brand-brown">{editingSale.cliente}</h3>
+                <p className="text-sm text-brand-brown/60">
+                  {products.find(p => p.id === editingSale.produto_id)?.nome || 'Produto removido'}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                onClick={handleCloseEditSale}
+                disabled={savingEdit}
+                className="border-brand-brown/15 text-brand-brown"
+                aria-label="Fechar edição"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-brand-brown">Novo valor vendido (BRL)</Label>
+              <Input
+                type="text"
+                inputMode="decimal"
+                value={editSalePrice}
+                onChange={(e) => setEditSalePrice(e.target.value)}
+                className="border-brand-brown/20 text-brand-brown"
+                autoFocus
+              />
+              <p className="text-xs leading-5 text-brand-brown/55">
+                O financeiro desta venda sera recalculado com o custo salvo no momento do registro.
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseEditSale}
+                disabled={savingEdit}
+                className="border-brand-brown/15 text-brand-brown"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleUpdateSalePrice}
+                disabled={savingEdit}
+                className="bg-brand-brown text-brand-bg hover:bg-brand-brown/90"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {savingEdit ? 'Salvando...' : 'Salvar ajuste'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Card className="bg-white shadow-sm border-brand-brown/10">
         <CardHeader>
           <CardTitle className="text-brand-brown">Registrar Venda</CardTitle>
@@ -306,16 +449,20 @@ export function SalesTracker({ sales, products, financialConfig = DEFAULT_FINANC
                         {getStatusLabel(s.status_pagamento)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 space-x-2">
+                    <td className="px-4 py-3">
                       {s.status_pagamento !== 'cancelada' ? (
-                        <>
+                        <div className="flex flex-wrap gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleStartEditSale(s)}>
+                            <Pencil className="h-3.5 w-3.5 mr-1" />
+                            Editar
+                          </Button>
                           <Button variant="outline" size="sm" onClick={() => handleToggleStatus(s.id, s.status_pagamento)}>
                             {s.status_pagamento === 'pago' ? 'Marcar Pendente' : 'Marcar Pago'}
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => handleCancelSale(s)} className="border-red-200 text-red-600 hover:bg-red-50">
                             Cancelar
                           </Button>
-                        </>
+                        </div>
                       ) : (
                         <span className="text-xs text-brand-brown/40">Sem ações</span>
                       )}
