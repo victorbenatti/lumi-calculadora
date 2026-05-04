@@ -8,7 +8,7 @@ import {
   type Product,
 } from './cart';
 
-const WHATSAPP_NUMBER = '5519982796873';
+const WHATSAPP_NUMBER = '5519997884533';
 const CART_STORAGE_KEY = 'lumi-cart-items';
 
 const isCartItem = (item: unknown): item is CartItem => {

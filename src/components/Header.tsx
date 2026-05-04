@@ -10,7 +10,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import type { Database } from '../types/supabase';
 
 const WHATSAPP_CONTACT_URL =
-  'https://wa.me/5519982796873?text=Ol%C3%A1!%20Quero%20conhecer%20as%20fragr%C3%A2ncias%20da%20Lumi%20Imports.';
+  'https://wa.me/5519997884533?text=Ol%C3%A1!%20Quero%20conhecer%20as%20fragr%C3%A2ncias%20da%20Lumi%20Imports.';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 

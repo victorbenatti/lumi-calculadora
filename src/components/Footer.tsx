@@ -30,7 +30,7 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-brand-brown/60 font-light">
               <li className="flex items-center gap-2 justify-center md:justify-start">
                 <Phone className="w-4 h-4 text-brand-brown/40" />
-                <span>(19) 98279-6873</span>
+                <span>(19) 99788-4533</span>
               </li>
               <li className="flex items-center gap-2 justify-center md:justify-start">
                 <Instagram className="w-4 h-4 text-brand-brown/40" />
