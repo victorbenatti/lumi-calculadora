@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Header } from '../components/Header';
 import { FaqSection, type FaqItem } from '../components/FaqSection';
-import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles, BadgePercent } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles, BadgePercent, Check, Share2 } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
@@ -43,6 +43,8 @@ export default function ProdutoDetalhe() {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [shareFeedbackVisible, setShareFeedbackVisible] = useState(false);
+  const shareFeedbackTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -151,12 +153,55 @@ export default function ProdutoDetalhe() {
     fetchRelatedProducts();
   }, [product]);
 
+  useEffect(() => {
+    return () => {
+      if (shareFeedbackTimeoutRef.current) {
+        window.clearTimeout(shareFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleAddToCart = () => {
     if (!product) return;
     const result = addItem(product);
 
     if (result.added) {
       ReactGA.event({ category: 'Carrinho', action: 'Adicionar Produto', label: product.nome });
+    }
+  };
+
+  const handleCompartilharPerfume = async () => {
+    if (!product || typeof window === 'undefined') return;
+
+    const perfumeUrl = window.location.href;
+    const shareText =
+      product.descricao_ia ||
+      (product.inspirado_em
+        ? `Conheça esta fragrância da Lumi Imports inspirada em ${product.inspirado_em}.`
+        : 'Conheça esta fragrância selecionada da Lumi Imports.');
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${product.nome} | Lumi Imports`,
+          text: shareText,
+          url: perfumeUrl,
+        });
+        return;
+      }
+
+      await navigator.clipboard.writeText(perfumeUrl);
+      setShareFeedbackVisible(true);
+
+      if (shareFeedbackTimeoutRef.current) {
+        window.clearTimeout(shareFeedbackTimeoutRef.current);
+      }
+
+      shareFeedbackTimeoutRef.current = window.setTimeout(() => {
+        setShareFeedbackVisible(false);
+      }, 2400);
+    } catch (err) {
+      console.error('Erro ao compartilhar perfume:', err);
     }
   };
 
@@ -332,18 +377,39 @@ export default function ProdutoDetalhe() {
             )}
 
             {/* CTA Master */}
-            <Button 
-              onClick={handleAddToCart}
-              disabled={outOfStock || reachedStockLimit}
-              className={`w-full py-8 rounded-[1.25rem] text-lg font-bold tracking-wide flex items-center justify-center gap-3 shadow-xl transition-all duration-300 mb-16 ${
-                outOfStock || reachedStockLimit
-                  ? 'bg-stone-200 text-stone-500 cursor-not-allowed shadow-none hover:bg-stone-200' 
-                  : 'bg-brand-brown hover:bg-[#2A1D15] text-white hover:shadow-2xl hover:-translate-y-1'
-              }`}
-            >
-              <ShoppingBag className="w-6 h-6" /> 
-              {outOfStock ? 'Indisponível no momento' : reachedStockLimit ? 'Quantidade máxima no carrinho' : 'Adicionar ao Carrinho'}
-            </Button>
+            <div className="mb-16 space-y-3">
+              <Button 
+                onClick={handleAddToCart}
+                disabled={outOfStock || reachedStockLimit}
+                className={`w-full py-8 rounded-[1.25rem] text-lg font-bold tracking-wide flex items-center justify-center gap-3 shadow-xl transition-all duration-300 ${
+                  outOfStock || reachedStockLimit
+                    ? 'bg-stone-200 text-stone-500 cursor-not-allowed shadow-none hover:bg-stone-200' 
+                    : 'bg-brand-brown hover:bg-[#2A1D15] text-white hover:shadow-2xl hover:-translate-y-1'
+                }`}
+              >
+                <ShoppingBag className="w-6 h-6" /> 
+                {outOfStock ? 'Indisponível no momento' : reachedStockLimit ? 'Quantidade máxima no carrinho' : 'Adicionar ao Carrinho'}
+              </Button>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Button
+                  type="button"
+                  onClick={handleCompartilharPerfume}
+                  variant="outline"
+                  className="w-full border-brand-brown/15 bg-[#fcfbf9] py-6 text-brand-brown hover:bg-brand-brown/5 sm:w-auto sm:min-w-56"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Compartilhar perfume
+                </Button>
+
+                {shareFeedbackVisible && (
+                  <div className="flex items-center justify-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 sm:justify-start">
+                    <Check className="h-4 w-4" />
+                    Link copiado!
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Conteúdo Enriquecido por IA */}
             <div className="space-y-16 border-t border-brand-brown/10 pt-16">
