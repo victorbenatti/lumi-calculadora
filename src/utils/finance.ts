@@ -41,6 +41,63 @@ export type SaleFinancialRow = SaleFinancialSnapshot & {
   status_pagamento: Sale['status_pagamento'];
 };
 
+export type FinancialTrendPoint = {
+  key: string;
+  label: string;
+  revenue: number;
+  cost: number;
+  replacement: number;
+  cashReserve: number;
+  grossProfit: number;
+  distributableProfit: number;
+  salesCount: number;
+};
+
+export type FinancialProductPerformance = {
+  productId: string;
+  productName: string;
+  revenue: number;
+  cost: number;
+  grossProfit: number;
+  cashReserve: number;
+  distributableProfit: number;
+  salesCount: number;
+  marginPercent: number;
+};
+
+export type FinancialStatusBreakdown = {
+  paidRevenue: number;
+  pendingRevenue: number;
+  paidCount: number;
+  pendingCount: number;
+};
+
+export type FinancialInsight = {
+  tone: 'success' | 'warning' | 'info';
+  title: string;
+  description: string;
+};
+
+export type FinancialSummary = {
+  revenue: number;
+  cost: number;
+  replacement: number;
+  cashReserve: number;
+  grossProfit: number;
+  distributableProfit: number;
+  yourProfit: number;
+  motherProfit: number;
+  pendingRevenue: number;
+  withdrawals: number;
+  yourWithdrawals: number;
+  motherWithdrawals: number;
+  yourBalance: number;
+  motherBalance: number;
+  paidCount: number;
+  pendingCount: number;
+  estimatedCount: number;
+};
+
 const toNumber = (value: number | null | undefined) => (
   typeof value === 'number' && Number.isFinite(value) ? value : 0
 );
@@ -153,7 +210,7 @@ export const summarizeFinancialRows = (
   rows: SaleFinancialRow[],
   withdrawals: FinancialWithdrawal[] = [],
   period: FinancePeriod = 'all'
-) => {
+): FinancialSummary => {
   const paidRows = rows.filter(row => row.status_pagamento === 'pago');
   const pendingRows = rows.filter(row => row.status_pagamento === 'pendente');
   const periodWithdrawals = withdrawals.filter(withdrawal => isWithinPeriod(withdrawal.data_retirada, period));
@@ -199,6 +256,181 @@ export const summarizeFinancialRows = (
     pendingCount: pendingRows.length,
     estimatedCount: paidRows.filter(row => row.financeiro_estimado).length,
   };
+};
+
+const getTrendKey = (dateValue: string, period: FinancePeriod) => {
+  const date = new Date(dateValue);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return period === 'all' ? `${year}-${month}` : `${year}-${month}-${day}`;
+};
+
+const formatTrendLabel = (key: string, period: FinancePeriod) => {
+  if (period === 'all') {
+    const [year, month] = key.split('-').map(Number);
+    return new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit' })
+      .format(new Date(year, month - 1, 1));
+  }
+
+  const [, month, day] = key.split('-').map(Number);
+  return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}`;
+};
+
+export const buildFinancialTrend = (
+  rows: SaleFinancialRow[],
+  period: FinancePeriod
+): FinancialTrendPoint[] => {
+  const grouped = rows
+    .filter(row => row.status_pagamento === 'pago')
+    .reduce<Record<string, FinancialTrendPoint>>((acc, row) => {
+      const key = getTrendKey(row.data_venda, period);
+      const current = acc[key] || {
+        key,
+        label: formatTrendLabel(key, period),
+        revenue: 0,
+        cost: 0,
+        replacement: 0,
+        cashReserve: 0,
+        grossProfit: 0,
+        distributableProfit: 0,
+        salesCount: 0,
+      };
+
+      current.revenue += row.preco_venda;
+      current.cost += row.custo_unitario_snapshot;
+      current.replacement += row.reposicao_snapshot;
+      current.cashReserve += row.reserva_caixa_snapshot;
+      current.grossProfit += row.lucro_bruto_snapshot;
+      current.distributableProfit += row.lucro_distribuivel_snapshot;
+      current.salesCount += 1;
+      acc[key] = current;
+      return acc;
+    }, {});
+
+  return Object.values(grouped).sort((a, b) => a.key.localeCompare(b.key));
+};
+
+export const buildProductPerformance = (
+  rows: SaleFinancialRow[],
+  limit = 5
+): FinancialProductPerformance[] => {
+  const grouped = rows
+    .filter(row => row.status_pagamento === 'pago')
+    .reduce<Record<string, FinancialProductPerformance>>((acc, row) => {
+      const current = acc[row.produto_id] || {
+        productId: row.produto_id,
+        productName: row.product_name,
+        revenue: 0,
+        cost: 0,
+        grossProfit: 0,
+        cashReserve: 0,
+        distributableProfit: 0,
+        salesCount: 0,
+        marginPercent: 0,
+      };
+
+      current.revenue += row.preco_venda;
+      current.cost += row.custo_unitario_snapshot;
+      current.grossProfit += row.lucro_bruto_snapshot;
+      current.cashReserve += row.reserva_caixa_snapshot;
+      current.distributableProfit += row.lucro_distribuivel_snapshot;
+      current.salesCount += 1;
+      current.marginPercent = current.revenue > 0 ? current.grossProfit / current.revenue : 0;
+      acc[row.produto_id] = current;
+      return acc;
+    }, {});
+
+  return Object.values(grouped)
+    .sort((a, b) => b.grossProfit - a.grossProfit)
+    .slice(0, limit);
+};
+
+export const buildStatusBreakdown = (rows: SaleFinancialRow[]): FinancialStatusBreakdown => {
+  return rows.reduce<FinancialStatusBreakdown>((acc, row) => {
+    if (row.status_pagamento === 'pago') {
+      acc.paidRevenue += row.preco_venda;
+      acc.paidCount += 1;
+    }
+
+    if (row.status_pagamento === 'pendente') {
+      acc.pendingRevenue += row.preco_venda;
+      acc.pendingCount += 1;
+    }
+
+    return acc;
+  }, {
+    paidRevenue: 0,
+    pendingRevenue: 0,
+    paidCount: 0,
+    pendingCount: 0,
+  });
+};
+
+export const buildFinancialInsights = (
+  rows: SaleFinancialRow[],
+  withdrawals: FinancialWithdrawal[],
+  period: FinancePeriod
+): FinancialInsight[] => {
+  const summary = summarizeFinancialRows(rows, withdrawals, period);
+  const topProducts = buildProductPerformance(rows, 1);
+  const paidRows = rows.filter(row => row.status_pagamento === 'pago');
+  const lowMarginRows = paidRows.filter(row => row.preco_venda > 0 && (row.lucro_bruto_snapshot / row.preco_venda) < 0.25);
+  const insights: FinancialInsight[] = [];
+
+  if (topProducts[0] && summary.grossProfit > 0) {
+    const topShare = topProducts[0].grossProfit / summary.grossProfit;
+    insights.push({
+      tone: topShare >= 0.35 ? 'warning' : 'success',
+      title: topShare >= 0.35 ? 'Lucro concentrado' : 'Produto lider em lucro',
+      description: `${topProducts[0].productName} gerou ${formatCurrency(topProducts[0].grossProfit)} de lucro bruto, ${Math.round(topShare * 100)}% do lucro pago no periodo.`,
+    });
+  }
+
+  if (summary.pendingRevenue > 0) {
+    const pendingPressure = summary.revenue > 0 ? summary.pendingRevenue / summary.revenue : 1;
+    insights.push({
+      tone: pendingPressure > 0.35 ? 'warning' : 'info',
+      title: pendingPressure > 0.35 ? 'Pendencias relevantes' : 'Receita a confirmar',
+      description: `${formatCurrency(summary.pendingRevenue)} ainda depende de pagamento. Isso equivale a ${Math.round(pendingPressure * 100)}% do faturamento pago no filtro atual.`,
+    });
+  }
+
+  if (summary.withdrawals > 0) {
+    const withdrawalRate = summary.distributableProfit > 0 ? summary.withdrawals / summary.distributableProfit : 1;
+    insights.push({
+      tone: withdrawalRate > 0.75 ? 'warning' : 'info',
+      title: withdrawalRate > 0.75 ? 'Retiradas altas no periodo' : 'Retiradas sob controle',
+      description: `Foram retirados ${formatCurrency(summary.withdrawals)}, ${Math.round(withdrawalRate * 100)}% do lucro distribuivel gerado no periodo.`,
+    });
+  }
+
+  if (lowMarginRows.length > 0) {
+    insights.push({
+      tone: 'warning',
+      title: 'Margem apertada',
+      description: `${lowMarginRows.length} venda${lowMarginRows.length > 1 ? 's' : ''} paga${lowMarginRows.length > 1 ? 's' : ''} ficou abaixo de 25% de margem bruta. Vale revisar desconto, custo ou preco final.`,
+    });
+  }
+
+  if (summary.cashReserve > 0 && summary.cashReserve < summary.pendingRevenue * 0.15) {
+    insights.push({
+      tone: 'warning',
+      title: 'Caixa sensivel',
+      description: `A reserva de caixa esta em ${formatCurrency(summary.cashReserve)} enquanto pendencias somam ${formatCurrency(summary.pendingRevenue)}.`,
+    });
+  }
+
+  if (insights.length === 0) {
+    insights.push({
+      tone: 'success',
+      title: 'Financeiro saudavel',
+      description: 'Nao ha concentracao critica, margem baixa ou retirada elevada no filtro atual.',
+    });
+  }
+
+  return insights.slice(0, 4);
 };
 
 /**
