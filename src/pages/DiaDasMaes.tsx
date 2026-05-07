@@ -31,6 +31,7 @@ import {
   hasActivePromotion,
   useCart,
 } from '../contexts/cart';
+import { getProductPath } from '../utils/productRoutes';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -88,7 +89,7 @@ function MothersDayProductCard({
     <Card className="group flex h-full flex-col overflow-hidden rounded-2xl border-rose-100 bg-white shadow-[0_8px_28px_rgba(135,65,85,0.08)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(135,65,85,0.14)]">
       <div
         className="cursor-pointer p-1.5"
-        onClick={() => navigate(`/produto/${product.id}`)}
+        onClick={() => navigate(getProductPath(product))}
       >
         <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-xl bg-[#fff7f8]">
           <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
@@ -130,7 +131,7 @@ function MothersDayProductCard({
       <CardContent className="flex flex-1 flex-col px-3 pb-3 pt-2">
         <button
           type="button"
-          onClick={() => navigate(`/produto/${product.id}`)}
+          onClick={() => navigate(getProductPath(product))}
           className="flex flex-1 flex-col text-left"
         >
           <div className="mb-1 flex items-center gap-1.5">

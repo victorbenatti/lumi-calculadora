@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
 import { useDebounce } from '../hooks/useDebounce';
 import type { Database } from '../types/supabase';
+import { getProductPath } from '../utils/productRoutes';
 
 const WHATSAPP_CONTACT_URL =
   'https://wa.me/5519997884533?text=Ol%C3%A1!%20Quero%20conhecer%20as%20fragr%C3%A2ncias%20da%20Lumi%20Imports.';
@@ -116,7 +117,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
   const goToProduct = (product: Product) => {
     updateSearchValue('');
     setSearchFocused(false);
-    navigate(`/produto/${product.id}`);
+    navigate(getProductPath(product));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

@@ -47,6 +47,7 @@ export interface Database {
           estoque: number
           categoria: string | null
           imagem_url: string | null
+          slug: string | null
           preco_venda_brl: number | null
           preco_promocao_brl: number | null
           promocao_ativa: boolean
@@ -71,6 +72,7 @@ export interface Database {
           estoque?: number
           categoria?: string | null
           imagem_url?: string | null
+          slug?: string | null
           preco_venda_brl?: number | null
           preco_promocao_brl?: number | null
           promocao_ativa?: boolean
@@ -95,6 +97,7 @@ export interface Database {
           estoque?: number
           categoria?: string | null
           imagem_url?: string | null
+          slug?: string | null
           preco_venda_brl?: number | null
           preco_promocao_brl?: number | null
           promocao_ativa?: boolean

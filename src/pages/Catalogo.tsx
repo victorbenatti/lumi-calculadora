@@ -11,6 +11,7 @@ import ReactGA from 'react-ga4';
 import { formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
 import { Header } from '../components/Header';
 import { FaqSection, type FaqItem } from '../components/FaqSection';
+import { getProductPath } from '../utils/productRoutes';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 type SortOption = 'Mais Vendidos' | 'Menor Preço' | 'Maior Preço';
@@ -102,7 +103,7 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
     <Card className="border border-brand-brown/5 bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_25px_rgb(61,43,31,0.08)] transition-all duration-500 flex flex-col h-full rounded-2xl group overflow-hidden">
       <div 
         className="p-1.5 cursor-pointer"
-        onClick={() => navigate(`/produto/${product.id}`)}
+        onClick={() => navigate(getProductPath(product))}
       >
         <div className="aspect-[3/4] w-full bg-[#fcfbf9] rounded-xl overflow-hidden relative flex items-center justify-center">
           {isLowStock && (
@@ -145,7 +146,7 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
       <CardContent className="px-3 pb-3 pt-2 flex flex-col flex-grow">
         <div 
           className="flex-grow cursor-pointer"
-          onClick={() => navigate(`/produto/${product.id}`)}
+          onClick={() => navigate(getProductPath(product))}
         >
           <div className="flex items-center gap-1.5 mb-1">
             <p className="text-[9px] uppercase tracking-[0.15em] text-brand-brown/40 font-bold">
