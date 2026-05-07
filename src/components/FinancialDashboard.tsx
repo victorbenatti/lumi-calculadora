@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
+import { FinancialCharts } from './FinancialCharts';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
 import {
@@ -227,6 +228,13 @@ export function FinancialDashboard({
           </div>
         ))}
       </div>
+
+      <FinancialCharts
+        rows={rows}
+        summary={summary}
+        period={period}
+        financialWithdrawals={financialWithdrawals}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <Card className="bg-white border-brand-brown/10 shadow-sm">
