@@ -55,7 +55,7 @@ function App() {
           />
           <Route path="/catalogo" element={<Catalogo />} />
           <Route path="/dia-das-maes" element={<DiaDasMaes />} />
-          <Route path="/produto/:id" element={<ProdutoDetalhe />} />
+          <Route path="/produto/:slugOrId" element={<ProdutoDetalhe />} />
         </Routes>
       </Suspense>
       {showFooter && <Footer />}

@@ -9,6 +9,7 @@ import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
 import { formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
+import { getProductPath, isProductIdParam } from '../utils/productRoutes';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -36,7 +37,7 @@ const productFaqItems: FaqItem[] = [
 ];
 
 export default function ProdutoDetalhe() {
-  const { id } = useParams();
+  const { slugOrId } = useParams();
   const navigate = useNavigate();
   const { addItem, getItemQuantity } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
@@ -47,7 +48,7 @@ export default function ProdutoDetalhe() {
   const shareFeedbackTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!slugOrId) return;
 
     const fetchProduct = async () => {
       setLoading(true);
@@ -56,29 +57,39 @@ export default function ProdutoDetalhe() {
         setRelatedProducts([]);
         setImageLoaded(false);
 
+        const lookupField = isProductIdParam(slugOrId) ? 'id' : 'slug';
         const { data, error } = await supabase
           .from('produtos')
           .select('*')
-          .eq('id', id)
+          .eq(lookupField, slugOrId)
           .single();
         
         if (error) throw error;
         setProduct(data);
+
+        if (lookupField === 'id' && data.slug) {
+          navigate(getProductPath(data), { replace: true });
+        }
       } catch (err) {
         console.error('Erro ao buscar produto:', err);
+        setProduct(null);
       } finally {
         setTimeout(() => setLoading(false), 300); // Suave transição
       }
     };
 
     fetchProduct();
+  }, [slugOrId, navigate]);
+
+  useEffect(() => {
+    if (!product?.id) return;
 
     // Inscrição em tempo real para este produto específico (ex: estoque)
     const channel = supabase
-      .channel(`produto-${id}`)
+      .channel(`produto-${product.id}`)
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'produtos', filter: `id=eq.${id}` },
+        { event: 'UPDATE', schema: 'public', table: 'produtos', filter: `id=eq.${product.id}` },
         (payload) => {
           setProduct(payload.new as Product);
         }
@@ -88,7 +99,7 @@ export default function ProdutoDetalhe() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [product?.id]);
 
   useEffect(() => {
     if (!product) return;
@@ -173,7 +184,7 @@ export default function ProdutoDetalhe() {
   const handleCompartilharPerfume = async () => {
     if (!product || typeof window === 'undefined') return;
 
-    const perfumeUrl = window.location.href;
+    const perfumeUrl = `${window.location.origin}${getProductPath(product)}`;
     const shareText =
       product.descricao_ia ||
       (product.inspirado_em
@@ -495,7 +506,7 @@ export default function ProdutoDetalhe() {
                   <button
                     key={relatedProduct.id}
                     type="button"
-                    onClick={() => navigate(`/produto/${relatedProduct.id}`)}
+                    onClick={() => navigate(getProductPath(relatedProduct))}
                     className="group flex h-full flex-col overflow-hidden rounded-2xl border border-brand-brown/5 bg-white p-1.5 text-left shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(61,43,31,0.08)]"
                   >
                     <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-xl bg-[#fcfbf9]">
