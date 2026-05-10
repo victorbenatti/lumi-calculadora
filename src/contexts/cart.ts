@@ -3,6 +3,8 @@ import type { Database } from '../types/supabase';
 
 export type Product = Database['public']['Tables']['produtos']['Row'];
 
+export const WHATSAPP_NUMBER = '5519997884533';
+
 export type CartItem = {
   id: string;
   nome: string;
@@ -58,6 +60,14 @@ export const getProductSalePrice = (product: Product) => {
   return hasActivePromotion(product)
     ? (product.preco_promocao_brl as number)
     : getProductRegularPrice(product);
+};
+
+export const buildProductOrderWhatsAppUrl = (product: Product) => {
+  const text = encodeURIComponent(
+    `Olá! Tenho interesse em encomendar o perfume ${product.nome}. Poderiam me informar disponibilidade e prazo?`
+  );
+
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
 };
 
 export function useCart() {
