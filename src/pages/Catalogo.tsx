@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { ArrowRight, BadgePercent, Package, CreditCard, ShoppingBag, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Gem, Gift, Plane } from 'lucide-react';
+import { ArrowRight, BadgePercent, Package, CreditCard, ShoppingBag, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Gem, Gift, Plane, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
-import { formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
+import { buildProductOrderWhatsAppUrl, formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
 import { Header } from '../components/Header';
 import { FaqSection, type FaqItem } from '../components/FaqSection';
 import { getProductPath } from '../utils/productRoutes';
@@ -92,12 +92,22 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
   const regularPrice = getProductRegularPrice(product);
   const isPromotion = hasActivePromotion(product);
   const installmentValue = calculateInstallment(precoVenda);
-  const isLowStock = product.estoque <= 2;
+  const outOfStock = product.estoque <= 0;
+  const isLowStock = product.estoque > 0 && product.estoque <= 2;
   const cartQuantity = getItemQuantity(product.id);
-  const reachedStockLimit = cartQuantity >= product.estoque;
+  const reachedStockLimit = !outOfStock && cartQuantity >= product.estoque;
   
   // Verifica se o produto tem dados de IA para exibir o botão expansível
   const hasAI = !!product.notas_topo || !!product.descricao_ia || !!product.familia_olfativa;
+  const handleProductAction = () => {
+    if (outOfStock) {
+      window.open(buildProductOrderWhatsAppUrl(product), '_blank');
+      ReactGA.event({ category: 'Encomenda', action: 'Solicitar Produto', label: product.nome });
+      return;
+    }
+
+    handleAddToCart(product);
+  };
 
   return (
     <Card className="border border-brand-brown/5 bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_25px_rgb(61,43,31,0.08)] transition-all duration-500 flex flex-col h-full rounded-2xl group overflow-hidden">
@@ -106,7 +116,13 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
         onClick={() => navigate(getProductPath(product))}
       >
         <div className="aspect-[3/4] w-full bg-[#fcfbf9] rounded-xl overflow-hidden relative flex items-center justify-center">
-          {isLowStock && (
+          {outOfStock ? (
+            <div className="absolute top-2 right-2 z-10 bg-stone-800/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
+              <span className="text-[8px] font-bold tracking-widest uppercase text-white">
+                Esgotado
+              </span>
+            </div>
+          ) : isLowStock && (
             <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
               <span className="text-[8px] font-bold tracking-widest uppercase text-red-800">
                 Últimas un.
@@ -249,12 +265,16 @@ function ProductCard({ product, handleAddToCart }: { product: Product, handleAdd
         </div>
         
         <Button 
-          onClick={() => handleAddToCart(product)}
-          disabled={product.estoque <= 0 || reachedStockLimit}
-          className="w-full mt-3 bg-brand-brown hover:bg-[#2A1D15] text-white rounded-xl py-2.5 text-xs font-medium tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all duration-300 disabled:bg-stone-200 disabled:text-stone-500 disabled:shadow-none"
+          onClick={handleProductAction}
+          disabled={reachedStockLimit}
+          className={`w-full mt-3 rounded-xl py-2.5 text-xs font-medium tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all duration-300 disabled:bg-stone-200 disabled:text-stone-500 disabled:shadow-none ${
+            outOfStock
+              ? 'bg-stone-900 hover:bg-stone-800 text-white'
+              : 'bg-brand-brown hover:bg-[#2A1D15] text-white'
+          }`}
         >
-          <ShoppingBag className="w-3.5 h-3.5" />
-          {reachedStockLimit ? 'No carrinho' : 'Adicionar ao Carrinho'}
+          {outOfStock ? <MessageCircle className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+          {outOfStock ? 'Quero Encomendar' : reachedStockLimit ? 'No carrinho' : 'Adicionar ao Carrinho'}
         </Button>
       </CardContent>
     </Card>
@@ -363,7 +383,7 @@ const catalogFaqItems: FaqItem[] = [
   },
   {
     question: 'Os perfumes árabes são pronta entrega?',
-    answer: 'O catálogo exibe apenas itens com estoque positivo. Ainda assim, a reserva acontece somente após confirmação no atendimento, porque algumas unidades podem sair rapidamente.',
+    answer: 'Itens disponíveis aparecem para compra imediata. Quando uma fragrância está esgotada, o catálogo sinaliza isso e permite solicitar uma encomenda pelo WhatsApp para confirmar disponibilidade e prazo.',
   },
 ];
 
@@ -421,7 +441,6 @@ export default function Catalogo() {
       const { data, error } = await supabase
         .from('produtos')
         .select('*')
-        .gt('estoque', 0)
         .order('nome', { ascending: true });
       
       if (error) throw error;
@@ -468,7 +487,7 @@ export default function Catalogo() {
 
   const pocketCollectionProducts = useMemo(() => {
     return products
-      .filter(isPocketCollectionProduct)
+      .filter(product => product.estoque > 0 && isPocketCollectionProduct(product))
       .sort((a, b) => getProductSalePrice(a) - getProductSalePrice(b));
   }, [products]);
 
@@ -500,6 +519,9 @@ export default function Catalogo() {
     });
 
     return [...filtered].sort((a, b) => {
+      const availableScore = Number(b.estoque > 0) - Number(a.estoque > 0);
+      if (availableScore !== 0) return availableScore;
+
       const priceA = getProductSalePrice(a);
       const priceB = getProductSalePrice(b);
 
@@ -512,6 +534,10 @@ export default function Catalogo() {
       return a.nome.localeCompare(b.nome, 'pt-BR');
     });
   }, [filters, products]);
+
+  const favoriteProducts = useMemo(() => {
+    return filteredProducts.filter(product => product.mais_vendido && product.estoque > 0);
+  }, [filteredProducts]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE));
   const currentPageStart = filteredProducts.length === 0
@@ -859,7 +885,7 @@ export default function Catalogo() {
               />
 
               {/* Seção Mais Vendidos - Apenas se Favoritos estiverem nos resultados filtrados */}
-              {filteredProducts.filter(p => p.mais_vendido).length > 0 && (
+              {favoriteProducts.length > 0 && (
                 <section>
                   <div className="flex items-center gap-2.5 mb-5">
                     <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
@@ -871,7 +897,7 @@ export default function Catalogo() {
                     </div>
                   </div>
                   <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 gap-3 sm:gap-4 snap-x snap-mandatory scrollbar-hide">
-                    {filteredProducts.filter(p => p.mais_vendido).map(product => (
+                    {favoriteProducts.map(product => (
                       <div key={`fav-${product.id}`} className="min-w-[160px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
                         <ProductCard product={product} handleAddToCart={handleAddToCart} />
                       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   CartContext,
+  WHATSAPP_NUMBER,
   formatBRL,
   getProductSalePrice,
   type AddToCartResult,
@@ -8,7 +9,6 @@ import {
   type Product,
 } from './cart';
 
-const WHATSAPP_NUMBER = '5519982796873';
 const CART_STORAGE_KEY = 'lumi-cart-items';
 
 const isCartItem = (item: unknown): item is CartItem => {
