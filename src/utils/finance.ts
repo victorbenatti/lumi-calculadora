@@ -1,4 +1,5 @@
 import type { Database } from '../types/supabase';
+import { formatCurrency } from './parsing';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 type Sale = Database['public']['Tables']['vendas']['Row'];
@@ -102,9 +103,7 @@ const toNumber = (value: number | null | undefined) => (
   typeof value === 'number' && Number.isFinite(value) ? value : 0
 );
 
-export const formatCurrency = (val: number) => (
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
-);
+export { formatCurrency };
 
 export const getActiveFinancialConfig = (configs: FinancialConfig[]) => {
   return configs.find(config => config.ativo) || DEFAULT_FINANCIAL_CONFIG;

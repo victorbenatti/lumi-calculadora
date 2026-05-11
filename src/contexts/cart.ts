@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { Database } from '../types/supabase';
+import { formatCurrency } from '../utils/parsing';
 
 export type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -37,9 +38,7 @@ export type CartContextValue = {
 
 export const CartContext = createContext<CartContextValue | null>(null);
 
-export const formatBRL = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-};
+export const formatBRL = formatCurrency;
 
 export const getProductRegularPrice = (product: Product) => {
   return product.preco_venda_brl || ((product.custo_final_brl || 0) * 1.30);

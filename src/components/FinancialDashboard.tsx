@@ -21,12 +21,12 @@ import type { Database } from '../types/supabase';
 import {
   buildFinancialRows,
   DEFAULT_FINANCIAL_CONFIG,
-  formatCurrency,
   summarizeFinancialRows,
   type FinancePeriod,
   type FinancialConfig,
   type FinancialWithdrawal,
 } from '../utils/finance';
+import { formatCurrency, parseDecimalInput } from '../utils/parsing';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 type Sale = Database['public']['Tables']['vendas']['Row'];
@@ -46,11 +46,6 @@ const periodLabels: Record<FinancePeriod, string> = {
 };
 
 const toPercentInput = (value: number) => String(Number((value * 100).toFixed(2)));
-
-const parseDecimalInput = (value: string) => {
-  const parsed = parseFloat(value.replace(',', '.'));
-  return Number.isFinite(parsed) ? parsed : 0;
-};
 
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
 
