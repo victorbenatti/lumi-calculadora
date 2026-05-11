@@ -9,10 +9,10 @@ import type { Database } from '../types/supabase';
 import {
   calculateSaleFinancials,
   DEFAULT_FINANCIAL_CONFIG,
-  formatCurrency,
   getSaleFinancialRow,
   type FinancialConfig,
 } from '../utils/finance';
+import { formatCurrency, parseMoneyInput } from '../utils/parsing';
 
 type Sale = Database['public']['Tables']['vendas']['Row'];
 type Product = Database['public']['Tables']['produtos']['Row'];
@@ -42,15 +42,6 @@ export function SalesTracker({
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [editSalePrice, setEditSalePrice] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
-
-  const parseMoneyInput = (value: string) => {
-    const cleaned = value.trim().replace(/[^\d,.-]/g, '');
-    const normalized = cleaned.includes(',') && cleaned.includes('.')
-      ? cleaned.replace(/\./g, '').replace(',', '.')
-      : cleaned.replace(',', '.');
-
-    return parseFloat(normalized);
-  };
 
   const getFinancialConfigForSale = (sale: Sale) => {
     return financialConfigs.find(config => config.id === sale.financeiro_configuracao_id) || financialConfig;

@@ -5,6 +5,7 @@ import { Label } from './ui/Label';
 import { Button } from './ui/Button';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
+import { formatCurrency } from '../utils/parsing';
 
 type Trip = Database['public']['Tables']['viagens']['Row'];
 
@@ -54,8 +55,6 @@ export function TripManagement({ trips, refetch, exchangeRate }: Props) {
     await supabase.from('viagens').update({ status: newStatus }).eq('id', id);
     refetch();
   };
-
-  const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   return (
     <div className="space-y-6">

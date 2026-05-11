@@ -27,6 +27,7 @@ import { useERP } from "../hooks/useERP";
 import { useExchangeRate } from "../hooks/useExchangeRate";
 import { supabase } from "../lib/supabase";
 import { getActiveFinancialConfig } from "../utils/finance";
+import { formatCurrency } from "../utils/parsing";
 
 type Tab = 'dashboard' | 'inventory' | 'trips' | 'sales' | 'finance';
 
@@ -78,7 +79,7 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const formattedRate = rate ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(rate) : '---';
+  const formattedRate = rate ? formatCurrency(rate) : '---';
   const timeString = lastUpdated ? lastUpdated.toLocaleTimeString('pt-BR') : '---';
   const activeFinancialConfig = getActiveFinancialConfig(financialConfigs);
   const activeItem = tabItems.find(item => item.id === activeTab) || tabItems[0];

@@ -1,30 +1,38 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { ArrowRight, BadgePercent, Package, CreditCard, ShoppingBag, Sparkles, ChevronDown, ChevronLeft, ChevronRight, Star, Flame, Filter, DollarSign, Globe, X, Gem, Gift, Plane, MessageCircle } from 'lucide-react';
+import {
+  ArrowRight,
+  BadgePercent,
+  Filter,
+  Flame,
+  Gem,
+  Gift,
+  Package,
+  Plane,
+  ShoppingBag,
+  X,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../types/supabase';
-import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
-import { buildProductOrderWhatsAppUrl, formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
+import { getProductSalePrice, useCart } from '../contexts/cart';
 import { Header } from '../components/Header';
 import { FaqSection, type FaqItem } from '../components/FaqSection';
-import { getProductPath } from '../utils/productRoutes';
+import { ProductCard } from '../components/ProductCard';
+import {
+  FilterPanel,
+  POCKET_COLLECTION_FILTER,
+  type CatalogFilters,
+} from '../components/FilterPanel';
+import { Pagination } from '../components/Pagination';
+import { useDebounce } from '../hooks/useDebounce';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
-type SortOption = 'Mais Vendidos' | 'Menor Preço' | 'Maior Preço';
-type CatalogFilters = {
-  search: string;
-  categoria: string;
-  tipo: string;
-  precoFaixa: string;
-  ordenacao: SortOption;
-};
 
 const PRODUCTS_PER_PAGE = 28;
-const POCKET_COLLECTION_FILTER = 'Brand Collection 30ml';
+const SEARCH_DEBOUNCE_MS = 250;
 
 const normalizeCatalogValue = (value: string | null) =>
   (value || '')
@@ -81,213 +89,13 @@ const heroSlides: HeroSlide[] = [
   }
 ];
 
-// Componente individual de Card para gerenciar o estado 'expanded'
-function ProductCard({ product, handleAddToCart }: { product: Product, handleAddToCart: (product: Product) => void }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const navigate = useNavigate();
-  const { getItemQuantity } = useCart();
-
-  const precoVenda = getProductSalePrice(product);
-  const regularPrice = getProductRegularPrice(product);
-  const isPromotion = hasActivePromotion(product);
-  const installmentValue = calculateInstallment(precoVenda);
-  const outOfStock = product.estoque <= 0;
-  const isLowStock = product.estoque > 0 && product.estoque <= 2;
-  const cartQuantity = getItemQuantity(product.id);
-  const reachedStockLimit = !outOfStock && cartQuantity >= product.estoque;
-  
-  // Verifica se o produto tem dados de IA para exibir o botão expansível
-  const hasAI = !!product.notas_topo || !!product.descricao_ia || !!product.familia_olfativa;
-  const handleProductAction = () => {
-    if (outOfStock) {
-      window.open(buildProductOrderWhatsAppUrl(product), '_blank');
-      ReactGA.event({ category: 'Encomenda', action: 'Solicitar Produto', label: product.nome });
-      return;
-    }
-
-    handleAddToCart(product);
-  };
-
-  return (
-    <Card className="border border-brand-brown/5 bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_25px_rgb(61,43,31,0.08)] transition-all duration-500 flex flex-col h-full rounded-2xl group overflow-hidden">
-      <div 
-        className="p-1.5 cursor-pointer"
-        onClick={() => navigate(getProductPath(product))}
-      >
-        <div className="aspect-[3/4] w-full bg-[#fcfbf9] rounded-xl overflow-hidden relative flex items-center justify-center">
-          {outOfStock ? (
-            <div className="absolute top-2 right-2 z-10 bg-stone-800/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
-              <span className="text-[8px] font-bold tracking-widest uppercase text-white">
-                Esgotado
-              </span>
-            </div>
-          ) : isLowStock && (
-            <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
-              <span className="text-[8px] font-bold tracking-widest uppercase text-red-800">
-                Últimas un.
-              </span>
-            </div>
-          )}
-          {product.mais_vendido && (
-            <div className="absolute top-2 left-2 z-10 bg-emerald-600/95 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
-              <Flame className="w-2.5 h-2.5 text-white" />
-              <span className="text-[8px] font-bold tracking-wider uppercase text-white">
-                Top
-              </span>
-            </div>
-          )}
-
-          {product.imagem_url ? (
-            <>
-              {!imageLoaded && <div className="absolute inset-0 bg-stone-100 animate-pulse" />}
-              <img 
-                src={product.imagem_url} 
-                alt={product.nome} 
-                loading="lazy"
-                decoding="async"
-                fetchPriority="low"
-                onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-cover transition-transform duration-700 ${
-                  imageLoaded ? 'opacity-100 scale-100 group-hover:scale-105' : 'opacity-0 scale-95'
-                }`}
-              />
-            </>
-          ) : (
-            <Package className="h-10 w-10 text-brand-brown/10" />
-          )}
-        </div>
-      </div>
-      
-      <CardContent className="px-3 pb-3 pt-2 flex flex-col flex-grow">
-        <div 
-          className="flex-grow cursor-pointer"
-          onClick={() => navigate(getProductPath(product))}
-        >
-          <div className="flex items-center gap-1.5 mb-1">
-            <p className="text-[9px] uppercase tracking-[0.15em] text-brand-brown/40 font-bold">
-              {product.categoria || 'Fragrância'}
-            </p>
-            {product.volume && (
-              <>
-                <span className="text-[7px] text-brand-brown/25">•</span>
-                <p className="text-[9px] uppercase tracking-[0.15em] text-brand-brown/40 font-bold">
-                  {product.volume}
-                </p>
-              </>
-            )}
-          </div>
-          <h3 className="font-semibold text-sm text-brand-brown leading-snug group-hover:text-amber-900 transition-colors line-clamp-2">
-            {product.nome}
-          </h3>
-        </div>
-
-        {hasAI && (
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)} 
-            className="flex items-center gap-1 mt-2 text-[10px] text-brand-brown/40 hover:text-brand-brown/70 font-medium transition-colors focus:outline-none"
-          >
-            <Sparkles className="w-3 h-3" />
-            <span>{isExpanded ? 'Ocultar' : 'Detalhes'}</span>
-            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-          </button>
-        )}
-
-        <AnimatePresence>
-          {isExpanded && hasAI && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-2 pb-1 space-y-2 border-t border-brand-brown/5 mt-2">
-                <div className="flex flex-wrap gap-1">
-                  {product.familia_olfativa && (
-                    <span className="bg-brand-brown/5 text-brand-brown px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase flex items-center gap-0.5">
-                      <Star className="w-2.5 h-2.5" /> {product.familia_olfativa}
-                    </span>
-                  )}
-                  {product.ocasiao && (
-                    <span className="bg-brand-brown/5 text-brand-brown px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase">
-                      {product.ocasiao}
-                    </span>
-                  )}
-                </div>
-                
-                {product.descricao_ia && (
-                  <p className="text-[10px] text-brand-brown/60 italic leading-relaxed border-l-2 border-brand-brown/10 pl-2 line-clamp-3">
-                    "{product.descricao_ia}"
-                  </p>
-                )}
-                
-                {(product.notas_topo || product.notas_coracao || product.notas_fundo) && (
-                  <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-brand-brown/5">
-                    <div className="flex flex-col items-center text-center">
-                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Topo</span>
-                      <span className="text-[10px] text-brand-brown leading-tight">{product.notas_topo || '-'}</span>
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Coração</span>
-                      <span className="text-[10px] text-brand-brown leading-tight">{product.notas_coracao || '-'}</span>
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Fundo</span>
-                      <span className="text-[10px] text-brand-brown leading-tight">{product.notas_fundo || '-'}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        <div className="mt-2 flex flex-col gap-0.5">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            {isPromotion && (
-              <span className="text-[11px] font-semibold text-brand-brown/35 line-through decoration-rose-700/60">
-                {formatBRL(regularPrice)}
-              </span>
-            )}
-            <span className={`text-lg font-bold ${isPromotion ? 'text-rose-800' : 'text-brand-brown'}`}>
-              {formatBRL(precoVenda)}
-            </span>
-          </div>
-          {isPromotion && (
-            <span className="w-max rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-rose-800">
-              Promo
-            </span>
-          )}
-          <div className="flex items-center gap-1 text-[10px] text-brand-brown/50 font-medium">
-            <CreditCard className="w-3 h-3 opacity-60" />
-            <span>12x de {formatBRL(installmentValue)}</span>
-          </div>
-        </div>
-        
-        <Button 
-          onClick={handleProductAction}
-          disabled={reachedStockLimit}
-          className={`w-full mt-3 rounded-xl py-2.5 text-xs font-medium tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all duration-300 disabled:bg-stone-200 disabled:text-stone-500 disabled:shadow-none ${
-            outOfStock
-              ? 'bg-stone-900 hover:bg-stone-800 text-white'
-              : 'bg-brand-brown hover:bg-[#2A1D15] text-white'
-          }`}
-        >
-          {outOfStock ? <MessageCircle className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
-          {outOfStock ? 'Quero Encomendar' : reachedStockLimit ? 'No carrinho' : 'Adicionar ao Carrinho'}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
 function PocketPerfumesSection({
   products,
-  handleAddToCart,
+  onAddToCart,
   onViewCollection,
 }: {
   products: Product[];
-  handleAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product) => void;
   onViewCollection: () => void;
 }) {
   if (products.length === 0) return null;
@@ -344,7 +152,7 @@ function PocketPerfumesSection({
           <ProductCard
             key={`pocket-${product.id}`}
             product={product}
-            handleAddToCart={handleAddToCart}
+            onAddToCart={onAddToCart}
           />
         ))}
       </div>
@@ -436,13 +244,15 @@ export default function Catalogo() {
     ordenacao: 'Mais Vendidos',
   });
 
+  const debouncedSearch = useDebounce(filters.search, SEARCH_DEBOUNCE_MS);
+
   const fetchCatalog = async () => {
     try {
       const { data, error } = await supabase
         .from('produtos')
         .select('*')
         .order('nome', { ascending: true });
-      
+
       if (error) throw error;
       if (data) setProducts(data);
     } catch (err) {
@@ -477,13 +287,13 @@ export default function Catalogo() {
     return () => window.clearInterval(interval);
   }, []);
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = useCallback((product: Product) => {
     const result = addItem(product);
 
     if (result.added) {
       ReactGA.event({ category: 'Carrinho', action: 'Adicionar Produto', label: product.nome });
     }
-  };
+  }, [addItem]);
 
   const pocketCollectionProducts = useMemo(() => {
     return products
@@ -492,8 +302,9 @@ export default function Catalogo() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
+    const searchTerm = normalizeCatalogValue(debouncedSearch);
+
     const filtered = products.filter(p => {
-      const searchTerm = normalizeCatalogValue(filters.search);
       const searchableValues = [
         p.nome,
         p.categoria,
@@ -508,7 +319,7 @@ export default function Catalogo() {
       const matchesCategory = filters.categoria === 'Todos' || p.categoria === filters.categoria;
       const matchesTipo = filters.tipo === 'Todos' ||
         (filters.tipo === POCKET_COLLECTION_FILTER ? isPocketCollectionProduct(p) : p.tipo === filters.tipo);
-      
+
       let matchesPrice = true;
       const preco = getProductSalePrice(p);
       if (filters.precoFaixa === 'Até R$300') matchesPrice = preco <= 300;
@@ -533,7 +344,7 @@ export default function Catalogo() {
 
       return a.nome.localeCompare(b.nome, 'pt-BR');
     });
-  }, [filters, products]);
+  }, [debouncedSearch, filters.categoria, filters.tipo, filters.precoFaixa, filters.ordenacao, products]);
 
   const favoriteProducts = useMemo(() => {
     return filteredProducts.filter(product => product.mais_vendido && product.estoque > 0);
@@ -570,8 +381,6 @@ export default function Catalogo() {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
-
-  const hasActiveFilters = filters.categoria !== 'Todos' || filters.tipo !== 'Todos' || filters.precoFaixa !== 'Todos';
 
   const clearFilters = () => setFilters({ ...filters, categoria: 'Todos', tipo: 'Todos', precoFaixa: 'Todos' });
 
@@ -611,91 +420,6 @@ export default function Catalogo() {
       catalogSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 0);
   };
-
-  const tipoFilterOptions = ['Todos', 'Importado', 'Árabe', POCKET_COLLECTION_FILTER];
-
-  const filterContent = (
-    <div className="space-y-8">
-      {hasActiveFilters && (
-        <Button 
-          variant="outline" 
-          onClick={clearFilters}
-          className="w-full border-brand-brown/20 text-brand-brown/70 hover:bg-stone-50 text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 rounded-xl h-10"
-        >
-          <X className="w-3 h-3" /> Limpar Filtros
-        </Button>
-      )}
-
-      <div className="space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
-          <Flame className="w-3.5 h-3.5" /> Ordenar
-        </h3>
-        <select
-          value={filters.ordenacao}
-          onChange={(event) => setFilterValue('ordenacao', event.target.value as SortOption)}
-          className="h-11 w-full rounded-xl border border-brand-brown/10 bg-white px-3 text-sm font-semibold text-brand-brown shadow-sm outline-none transition-colors focus:border-brand-brown/30 focus:ring-2 focus:ring-brand-brown/10"
-        >
-          {(['Mais Vendidos', 'Menor Preço', 'Maior Preço'] as SortOption[]).map(option => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="h-px bg-brand-brown/5 w-full"></div>
-      
-      <div className="space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
-          <Package className="w-3.5 h-3.5" /> Categoria
-        </h3>
-        <div className="flex flex-col gap-3">
-          {['Todos', 'Masculino', 'Feminino', 'Unissex'].map(cat => (
-            <button key={cat} onClick={() => setFilterValue('categoria', cat)} className="flex items-center gap-3 cursor-pointer group text-left">
-              <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${filters.categoria === cat ? 'border-brand-brown bg-brand-brown' : 'border-brand-brown/30 group-hover:border-brand-brown/60'}`}>
-                {filters.categoria === cat && <div className="w-1.5 h-1.5 bg-brand-bg rounded-full" />}
-              </div>
-              <span className={`text-sm ${filters.categoria === cat ? 'font-semibold text-brand-brown' : 'text-brand-brown/70 group-hover:text-brand-brown'}`}>{cat}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="h-px bg-brand-brown/5 w-full"></div>
-
-      <div className="space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
-          <Globe className="w-3.5 h-3.5" /> Origem e Linha
-        </h3>
-        <div className="flex flex-col gap-3">
-          {tipoFilterOptions.map(tipo => (
-            <button key={tipo} onClick={() => setFilterValue('tipo', tipo)} className="flex items-center gap-3 cursor-pointer group text-left">
-              <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${filters.tipo === tipo ? 'border-brand-brown bg-brand-brown' : 'border-brand-brown/30 group-hover:border-brand-brown/60'}`}>
-                {filters.tipo === tipo && <div className="w-1.5 h-1.5 bg-brand-bg rounded-full" />}
-              </div>
-              <span className={`text-sm ${filters.tipo === tipo ? 'font-semibold text-brand-brown' : 'text-brand-brown/70 group-hover:text-brand-brown'}`}>{tipo}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="h-px bg-brand-brown/5 w-full"></div>
-
-      <div className="space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
-          <DollarSign className="w-3.5 h-3.5" /> Faixa de Preço
-        </h3>
-        <div className="flex flex-col gap-3">
-          {['Todos', 'Até R$300', 'R$300 - R$600', 'Acima de R$600'].map(faixa => (
-            <button key={faixa} onClick={() => setFilterValue('precoFaixa', faixa)} className="flex items-center gap-3 cursor-pointer group text-left">
-              <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${filters.precoFaixa === faixa ? 'border-brand-brown bg-brand-brown' : 'border-brand-brown/30 group-hover:border-brand-brown/60'}`}>
-                {filters.precoFaixa === faixa && <div className="w-1.5 h-1.5 bg-brand-bg rounded-full" />}
-              </div>
-              <span className={`text-sm ${filters.precoFaixa === faixa ? 'font-semibold text-brand-brown' : 'text-brand-brown/70 group-hover:text-brand-brown'}`}>{faixa}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-brand-bg font-sans selection:bg-brand-brown selection:text-brand-bg flex flex-col">
@@ -792,14 +516,14 @@ export default function Catalogo() {
         </section>
 
         <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 lg:gap-12">
-        
+
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-56 lg:w-64 shrink-0">
           <div className="sticky top-8 bg-white p-6 rounded-[2rem] border border-brand-brown/5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.03)]">
             <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2 mb-6">
               <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
             </h2>
-            {filterContent}
+            <FilterPanel filters={filters} onChange={setFilterValue} onClear={clearFilters} />
           </div>
         </aside>
 
@@ -807,7 +531,7 @@ export default function Catalogo() {
         <AnimatePresence>
           {isMobileFiltersOpen && (
             <>
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -830,10 +554,10 @@ export default function Catalogo() {
                   </button>
                 </div>
                 <div className="p-6 overflow-y-auto flex-1">
-                  {filterContent}
+                  <FilterPanel filters={filters} onChange={setFilterValue} onClear={clearFilters} />
                 </div>
                 <div className="p-6 border-t border-brand-brown/10 bg-[#fdfbf9]">
-                  <Button 
+                  <Button
                     onClick={() => setIsMobileFiltersOpen(false)}
                     className="w-full bg-brand-brown hover:bg-[#2A1D15] text-white py-6 rounded-2xl text-base font-medium shadow-md"
                   >
@@ -868,8 +592,8 @@ export default function Catalogo() {
               </div>
               <h3 className="text-2xl font-light text-brand-brown mb-2">Nenhuma fragrância encontrada</h3>
               <p className="text-brand-brown/50 max-w-md font-light">Não localizamos nenhum produto com esses filtros. Tente remover alguns critérios.</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={clearFilters}
                 className="mt-8 rounded-full px-8 border-brand-brown/20 text-brand-brown hover:bg-stone-50"
               >
@@ -880,7 +604,7 @@ export default function Catalogo() {
             <div className="space-y-16">
               <PocketPerfumesSection
                 products={pocketCollectionProducts}
-                handleAddToCart={handleAddToCart}
+                onAddToCart={handleAddToCart}
                 onViewCollection={showPocketCollection}
               />
 
@@ -899,7 +623,7 @@ export default function Catalogo() {
                   <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 gap-3 sm:gap-4 snap-x snap-mandatory scrollbar-hide">
                     {favoriteProducts.map(product => (
                       <div key={`fav-${product.id}`} className="min-w-[160px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
-                        <ProductCard product={product} handleAddToCart={handleAddToCart} />
+                        <ProductCard product={product} onAddToCart={handleAddToCart} />
                       </div>
                     ))}
                   </div>
@@ -925,62 +649,16 @@ export default function Catalogo() {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                   {paginatedProducts.map((product) => (
-                    <ProductCard key={`all-${product.id}`} product={product} handleAddToCart={handleAddToCart} />
+                    <ProductCard key={`all-${product.id}`} product={product} onAddToCart={handleAddToCart} />
                   ))}
                 </div>
 
-                {totalPages > 1 && (
-                  <nav
-                    className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border border-brand-brown/5 bg-white px-4 py-4 shadow-[0_4px_20px_rgba(61,43,31,0.03)] sm:flex-row"
-                    aria-label="Paginação do catálogo"
-                  >
-                    <p className="text-xs font-medium text-brand-brown/50">
-                      Página {currentPage} de {totalPages}
-                    </p>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => goToPage(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="h-9 rounded-full border-brand-brown/15 px-3 text-brand-brown hover:bg-stone-50 disabled:opacity-40"
-                        aria-label="Página anterior"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-
-                      <div className="flex items-center gap-1">
-                        {visiblePageNumbers.map((pageNumber) => (
-                          <button
-                            key={pageNumber}
-                            type="button"
-                            onClick={() => goToPage(pageNumber)}
-                            className={`flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold transition-colors ${
-                              currentPage === pageNumber
-                                ? 'bg-brand-brown text-white shadow-sm'
-                                : 'text-brand-brown/60 hover:bg-stone-50 hover:text-brand-brown'
-                            }`}
-                            aria-current={currentPage === pageNumber ? 'page' : undefined}
-                          >
-                            {pageNumber}
-                          </button>
-                        ))}
-                      </div>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => goToPage(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="h-9 rounded-full border-brand-brown/15 px-3 text-brand-brown hover:bg-stone-50 disabled:opacity-40"
-                        aria-label="Próxima página"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </nav>
-                )}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  visiblePageNumbers={visiblePageNumbers}
+                  onPageChange={goToPage}
+                />
               </section>
             </div>
           )}
