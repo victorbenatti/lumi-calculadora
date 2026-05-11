@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import {
   ArrowRight,
-  BadgePercent,
   Filter,
   Flame,
   Gem,
@@ -69,14 +68,6 @@ const heroSlides: HeroSlide[] = [
     mobileImage: 'banner-geral-MOBILE.webp',
     alt: 'Banner LUMI Imports com perfumes árabes e importados selecionados',
     href: '#catalogo',
-    clickable: true,
-  },
-  {
-    id: 'dia-das-maes',
-    desktopImage: 'banner-diadasmaes.webp',
-    mobileImage: 'banner-diadasmaes-MOBILE.webp',
-    alt: 'Promoção de Dia das Mães da LUMI Imports com perfumes com 30% off',
-    href: '/dia-das-maes',
     clickable: true,
   },
   {
@@ -482,37 +473,6 @@ export default function Catalogo() {
               </div>
             </div>
           </div>
-        </section>
-
-        <section className="bg-brand-bg px-4 pt-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={() => navigate('/dia-das-maes')}
-            className="group mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-2xl border border-rose-100 bg-white px-4 py-4 text-left shadow-[0_10px_30px_rgba(135,65,85,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-[0_16px_38px_rgba(135,65,85,0.12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-800/25 sm:flex-row sm:items-center sm:justify-between sm:px-5"
-            aria-label="Ver promoção de Dia das Mães da Lumi Imports"
-          >
-            <div className="flex items-start gap-3 sm:items-center">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-800 ring-1 ring-rose-100">
-                <BadgePercent className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-rose-800/70">
-                  Especial Dia das Mães
-                </p>
-                <h2 className="mt-1 text-base font-bold leading-snug text-brand-brown sm:text-lg">
-                  Perfumes selecionados com até 30% OFF
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-brand-brown/55 sm:text-sm">
-                  Encontre presentes elegantes com curadoria Lumi e finalize pelo WhatsApp.
-                </p>
-              </div>
-            </div>
-
-            <span className="flex w-full items-center justify-center gap-2 rounded-full bg-rose-800 px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white transition-colors group-hover:bg-rose-900 sm:w-auto sm:shrink-0">
-              Ver ofertas
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </button>
         </section>
 
         <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 lg:gap-12">

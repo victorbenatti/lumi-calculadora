@@ -9,7 +9,6 @@ import { CartProvider } from './contexts/CartContext';
 // Code Splitting - Carregamento preguiçoso das páginas
 const Admin = lazy(() => import('./pages/Admin'));
 const Catalogo = lazy(() => import('./pages/Catalogo'));
-const DiaDasMaes = lazy(() => import('./pages/DiaDasMaes'));
 const Login = lazy(() => import('./pages/Login'));
 const ProdutoDetalhe = lazy(() => import('./pages/ProdutoDetalhe'));
 
@@ -54,7 +53,7 @@ function App() {
             } 
           />
           <Route path="/catalogo" element={<Catalogo />} />
-          <Route path="/dia-das-maes" element={<DiaDasMaes />} />
+          <Route path="/dia-das-maes" element={<Navigate to="/catalogo" replace />} />
           <Route path="/produto/:slugOrId" element={<ProdutoDetalhe />} />
         </Routes>
       </Suspense>
