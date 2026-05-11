@@ -4,11 +4,11 @@ import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Header } from '../components/Header';
 import { FaqSection, type FaqItem } from '../components/FaqSection';
-import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles, BadgePercent, Check, Share2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Wind, Heart, Droplet, Package, Star, Calendar, Sparkles, BadgePercent, Check, Share2 } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import ReactGA from 'react-ga4';
-import { buildProductOrderWhatsAppUrl, formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
+import { formatBRL, getProductRegularPrice, getProductSalePrice, hasActivePromotion, useCart } from '../contexts/cart';
 import { getProductPath, isProductIdParam } from '../utils/productRoutes';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
@@ -24,7 +24,7 @@ const productFaqItems: FaqItem[] = [
   },
   {
     question: 'Como finalizo a compra desse perfume?',
-    answer: 'Quando estiver disponível, adicione o produto ao carrinho, revise sua seleção e finalize pelo WhatsApp. Se estiver esgotado, use Quero Encomendar para consultar disponibilidade e prazo com a equipe.',
+    answer: 'Adicione o produto ao carrinho, revise sua seleção e clique em finalizar pelo WhatsApp. A equipe confirma estoque, pagamento e envio com você.',
   },
   {
     question: 'Posso pedir ajuda para escolher uma fragrância?',
@@ -179,13 +179,6 @@ export default function ProdutoDetalhe() {
     if (result.added) {
       ReactGA.event({ category: 'Carrinho', action: 'Adicionar Produto', label: product.nome });
     }
-  };
-
-  const handleOrderProduct = () => {
-    if (!product) return;
-
-    window.open(buildProductOrderWhatsAppUrl(product), '_blank');
-    ReactGA.event({ category: 'Encomenda', action: 'Solicitar Produto', label: product.nome });
   };
 
   const handleCompartilharPerfume = async () => {
@@ -397,18 +390,16 @@ export default function ProdutoDetalhe() {
             {/* CTA Master */}
             <div className="mb-16 space-y-3">
               <Button 
-                onClick={outOfStock ? handleOrderProduct : handleAddToCart}
-                disabled={!outOfStock && reachedStockLimit}
+                onClick={handleAddToCart}
+                disabled={outOfStock || reachedStockLimit}
                 className={`w-full py-8 rounded-[1.25rem] text-lg font-bold tracking-wide flex items-center justify-center gap-3 shadow-xl transition-all duration-300 ${
-                  outOfStock
-                    ? 'bg-stone-900 hover:bg-stone-800 text-white hover:shadow-2xl hover:-translate-y-1'
-                    : reachedStockLimit
+                  outOfStock || reachedStockLimit
                     ? 'bg-stone-200 text-stone-500 cursor-not-allowed shadow-none hover:bg-stone-200' 
                     : 'bg-brand-brown hover:bg-[#2A1D15] text-white hover:shadow-2xl hover:-translate-y-1'
                 }`}
               >
-                {outOfStock ? <MessageCircle className="w-6 h-6" /> : <ShoppingBag className="w-6 h-6" />}
-                {outOfStock ? 'Quero Encomendar' : reachedStockLimit ? 'Quantidade máxima no carrinho' : 'Adicionar ao Carrinho'}
+                <ShoppingBag className="w-6 h-6" /> 
+                {outOfStock ? 'Indisponível no momento' : reachedStockLimit ? 'Quantidade máxima no carrinho' : 'Adicionar ao Carrinho'}
               </Button>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
