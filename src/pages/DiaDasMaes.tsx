@@ -25,6 +25,7 @@ import { FaqSection, type FaqItem } from '../components/FaqSection';
 import type { Database } from '../types/supabase';
 import { calculateInstallment } from '../utils/finance';
 import {
+  WHATSAPP_NUMBER,
   formatBRL,
   getProductRegularPrice,
   getProductSalePrice,
@@ -36,7 +37,7 @@ import { getProductPath } from '../utils/productRoutes';
 type Product = Database['public']['Tables']['produtos']['Row'];
 
 const WHATSAPP_GIFT_HELP_URL =
-  'https://wa.me/5519997884533?text=Ol%C3%A1!%20Quero%20ajuda%20para%20escolher%20um%20presente%20de%20Dia%20das%20M%C3%A3es%20na%20Lumi%20Imports.';
+  `https://wa.me/${WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Quero%20ajuda%20para%20escolher%20um%20presente%20de%20Dia%20das%20M%C3%A3es%20na%20Lumi%20Imports.`;
 
 const mothersDayFaqItems: FaqItem[] = [
   {

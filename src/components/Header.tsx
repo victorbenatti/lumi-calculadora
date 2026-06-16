@@ -5,13 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { supabase } from '../lib/supabase';
-import { formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
+import { WHATSAPP_NUMBER, formatBRL, getProductSalePrice, useCart } from '../contexts/cart';
 import { useDebounce } from '../hooks/useDebounce';
 import type { Database } from '../types/supabase';
 import { getProductPath } from '../utils/productRoutes';
 
 const WHATSAPP_CONTACT_URL =
-  'https://wa.me/5519997884533?text=Ol%C3%A1!%20Quero%20conhecer%20as%20fragr%C3%A2ncias%20da%20Lumi%20Imports.';
+  `https://wa.me/${WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Quero%20conhecer%20as%20fragr%C3%A2ncias%20da%20Lumi%20Imports.`;
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 

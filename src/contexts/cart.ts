@@ -4,7 +4,7 @@ import { formatCurrency } from '../utils/parsing';
 
 export type Product = Database['public']['Tables']['produtos']['Row'];
 
-export const WHATSAPP_NUMBER = '5519997884533';
+export const WHATSAPP_NUMBER = '5519982796873';
 
 export type CartItem = {
   id: string;
