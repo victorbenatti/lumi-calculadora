@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { Button } from '../ui/Button';
+import { Pagination } from '../Pagination';
 import type { Database } from '../../types/supabase';
 import { formatCurrency } from '../../utils/parsing';
 
@@ -15,9 +16,19 @@ interface InventoryTableProps {
   onDelete: (id: string) => void;
 }
 
+const PRODUCTS_PER_PAGE = 15;
+
+type SortOption = 'nome' | 'maior-estoque' | 'menor-estoque' | 'maior-preco' | 'menor-preco';
+
+const getEffectivePrice = (product: Product) => product.preco_venda_brl || (product.custo_final_brl * 2);
+
 export function InventoryTable({ products, onEdit, onDelete }: InventoryTableProps) {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('Todas');
+  const [tipoFilter, setTipoFilter] = useState('Todos');
+  const [sortOption, setSortOption] = useState<SortOption>('nome');
+  const [page, setPage] = useState(1);
+  const [filterKey, setFilterKey] = useState('|Todas|Todos|nome');
 
   const categories = useMemo(() => {
     const unique = new Set(
@@ -29,16 +40,58 @@ export function InventoryTable({ products, onEdit, onDelete }: InventoryTablePro
     return ['Todas', ...Array.from(unique).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
   }, [products]);
 
+  const tipos = useMemo(() => {
+    const unique = new Set(
+      products
+        .map(product => product.tipo?.trim())
+        .filter((value): value is string => Boolean(value))
+    );
+
+    return ['Todos', ...Array.from(unique).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     const searchTerm = search.trim().toLowerCase();
 
-    return products.filter(product => {
+    const filtered = products.filter(product => {
       const matchesName = !searchTerm || product.nome.toLowerCase().includes(searchTerm);
       const matchesCategory = categoryFilter === 'Todas' || product.categoria === categoryFilter;
+      const matchesTipo = tipoFilter === 'Todos' || product.tipo === tipoFilter;
 
-      return matchesName && matchesCategory;
+      return matchesName && matchesCategory && matchesTipo;
     });
-  }, [products, search, categoryFilter]);
+
+    return [...filtered].sort((a, b) => {
+      if (sortOption === 'maior-estoque') return b.estoque - a.estoque;
+      if (sortOption === 'menor-estoque') return a.estoque - b.estoque;
+      if (sortOption === 'maior-preco') return getEffectivePrice(b) - getEffectivePrice(a);
+      if (sortOption === 'menor-preco') return getEffectivePrice(a) - getEffectivePrice(b);
+      return a.nome.localeCompare(b.nome, 'pt-BR');
+    });
+  }, [products, search, categoryFilter, tipoFilter, sortOption]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE));
+
+  // Reseta a página ao trocar filtros/ordenação (ajuste de estado durante a renderização, sem efeito).
+  const currentFilterKey = `${search}|${categoryFilter}|${tipoFilter}|${sortOption}`;
+  if (currentFilterKey !== filterKey) {
+    setFilterKey(currentFilterKey);
+    if (page !== 1) setPage(1);
+  }
+
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(start, start + PRODUCTS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
+
+  const visiblePageNumbers = useMemo(() => {
+    const maxVisiblePages = 5;
+    const startPage = Math.max(1, Math.min(currentPage - Math.floor(maxVisiblePages / 2), totalPages - maxVisiblePages + 1));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+  }, [currentPage, totalPages]);
 
   return (
     <Card className="bg-white border-brand-brown/10 shadow-sm">
@@ -49,7 +102,7 @@ export function InventoryTable({ products, onEdit, onDelete }: InventoryTablePro
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+        <div className="grid gap-3 md:grid-cols-[1fr_180px_180px_200px]">
           <div className="space-y-2">
             <Label className="text-brand-brown">Pesquisar por nome</Label>
             <Input
@@ -70,6 +123,32 @@ export function InventoryTable({ products, onEdit, onDelete }: InventoryTablePro
               {categories.map(category => (
                 <option key={category} value={category}>{category}</option>
               ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-brand-brown">Origem / Linha</Label>
+            <select
+              value={tipoFilter}
+              onChange={(e) => setTipoFilter(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
+            >
+              {tipos.map(tipo => (
+                <option key={tipo} value={tipo}>{tipo}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-brand-brown">Ordenar por</Label>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value as SortOption)}
+              className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
+            >
+              <option value="nome">Nome (A-Z)</option>
+              <option value="maior-estoque">Maior quantidade</option>
+              <option value="menor-estoque">Menor quantidade</option>
+              <option value="maior-preco">Maior preço</option>
+              <option value="menor-preco">Menor preço</option>
             </select>
           </div>
         </div>
@@ -103,7 +182,7 @@ export function InventoryTable({ products, onEdit, onDelete }: InventoryTablePro
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map(p => (
+                paginatedProducts.map(p => (
                   <tr key={p.id} className="border-b border-brand-brown/5 hover:bg-brand-bg/50 transition-colors">
                     <td className="px-4 py-3">
                       {p.imagem_url ? (
@@ -126,7 +205,7 @@ export function InventoryTable({ products, onEdit, onDelete }: InventoryTablePro
                     <td className="px-4 py-3">{p.categoria || '-'}</td>
                     <td className="px-4 py-3 font-medium text-brand-brown/70">{formatCurrency(p.custo_final_brl)}</td>
                     <td className="px-4 py-3 font-bold text-brand-brown">
-                      {p.preco_venda_brl ? formatCurrency(p.preco_venda_brl) : formatCurrency(p.custo_final_brl * 1.30)}
+                      {p.preco_venda_brl ? formatCurrency(p.preco_venda_brl) : formatCurrency(getEffectivePrice(p))}
                     </td>
                     <td className="px-4 py-3">
                       {p.promocao_ativa && p.preco_promocao_brl ? (
@@ -161,6 +240,12 @@ export function InventoryTable({ products, onEdit, onDelete }: InventoryTablePro
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          visiblePageNumbers={visiblePageNumbers}
+          onPageChange={setPage}
+        />
       </CardContent>
     </Card>
   );

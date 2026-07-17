@@ -205,6 +205,38 @@ export const buildFinancialRows = (
     ));
 };
 
+export const getSaleMonthKey = (dateValue: string): string => {
+  const date = new Date(dateValue);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
+
+export const buildAvailableSaleMonths = (sales: Sale[]): string[] => {
+  const keys = new Set(sales.map(sale => getSaleMonthKey(sale.data_venda)));
+  return Array.from(keys).sort((a, b) => b.localeCompare(a));
+};
+
+export const formatMonthKeyLabel = (monthKey: string): string => {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1));
+};
+
+export const buildFinancialRowsForMonth = (
+  sales: Sale[],
+  products: Product[],
+  config: FinancialConfig = DEFAULT_FINANCIAL_CONFIG,
+  monthKey: string | 'all' = 'all'
+): SaleFinancialRow[] => {
+  return sales
+    .filter(sale => monthKey === 'all' || getSaleMonthKey(sale.data_venda) === monthKey)
+    .map(sale => getSaleFinancialRow(
+      sale,
+      products.find(product => product.id === sale.produto_id),
+      config
+    ));
+};
+
 export const summarizeFinancialRows = (
   rows: SaleFinancialRow[],
   withdrawals: FinancialWithdrawal[] = [],
@@ -313,7 +345,8 @@ export const buildFinancialTrend = (
 
 export const buildProductPerformance = (
   rows: SaleFinancialRow[],
-  limit = 5
+  limit = 5,
+  sortBy: 'grossProfit' | 'salesCount' = 'grossProfit'
 ): FinancialProductPerformance[] => {
   const grouped = rows
     .filter(row => row.status_pagamento === 'pago')
@@ -342,7 +375,7 @@ export const buildProductPerformance = (
     }, {});
 
   return Object.values(grouped)
-    .sort((a, b) => b.grossProfit - a.grossProfit)
+    .sort((a, b) => (sortBy === 'salesCount' ? b.salesCount - a.salesCount : b.grossProfit - a.grossProfit))
     .slice(0, limit);
 };
 

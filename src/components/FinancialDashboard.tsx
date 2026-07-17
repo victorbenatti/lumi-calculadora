@@ -56,7 +56,7 @@ export function FinancialDashboard({
   financialWithdrawals,
   refetch,
 }: Props) {
-  const [period, setPeriod] = useState<FinancePeriod>('all');
+  const [period, setPeriod] = useState<FinancePeriod>('current-month');
   const [savingConfig, setSavingConfig] = useState(false);
   const [savingWithdrawal, setSavingWithdrawal] = useState(false);
   const [cashPercent, setCashPercent] = useState(toPercentInput(financialConfig.caixa_percentual));

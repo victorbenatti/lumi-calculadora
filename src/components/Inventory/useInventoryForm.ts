@@ -23,7 +23,7 @@ export function useInventoryForm({ trips, refetch }: UseInventoryFormParams) {
   );
   const [name, setName] = useState('');
   const [priceUSD, setPriceUSD] = useState('');
-  const [margin, setMargin] = useState('30');
+  const [margin, setMargin] = useState('100');
   const [extraCost, setExtraCost] = useState('');
   const [customPrice, setCustomPrice] = useState('');
   const [promotionPrice, setPromotionPrice] = useState('');

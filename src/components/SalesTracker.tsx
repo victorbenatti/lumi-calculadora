@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Button } from './ui/Button';
+import { Combobox } from './ui/Combobox';
+import { Pagination } from './Pagination';
 import { Pencil, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
@@ -278,6 +280,47 @@ export function SalesTracker({
     });
   }, [sales, products, financialConfig]);
 
+  const [historyStatusFilter, setHistoryStatusFilter] = useState<SaleStatus | 'todos'>('todos');
+  const [historySort, setHistorySort] = useState<'recentes' | 'maior-valor' | 'menor-valor'>('recentes');
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyFilterKey, setHistoryFilterKey] = useState('todos|recentes');
+
+  const filteredSortedSales = useMemo(() => {
+    const filtered = historyStatusFilter === 'todos'
+      ? salesWithSplit
+      : salesWithSplit.filter(s => s.status_pagamento === historyStatusFilter);
+
+    return [...filtered].sort((a, b) => {
+      if (historySort === 'maior-valor') return b.preco_venda - a.preco_venda;
+      if (historySort === 'menor-valor') return a.preco_venda - b.preco_venda;
+      return new Date(b.data_venda).getTime() - new Date(a.data_venda).getTime();
+    });
+  }, [salesWithSplit, historyStatusFilter, historySort]);
+
+  const SALES_PER_PAGE = 15;
+  const historyTotalPages = Math.max(1, Math.ceil(filteredSortedSales.length / SALES_PER_PAGE));
+
+  // Reseta a página ao trocar filtro/ordenação (ajuste de estado durante a renderização, sem efeito).
+  const currentHistoryFilterKey = `${historyStatusFilter}|${historySort}`;
+  if (currentHistoryFilterKey !== historyFilterKey) {
+    setHistoryFilterKey(currentHistoryFilterKey);
+    if (historyPage !== 1) setHistoryPage(1);
+  }
+
+  const currentHistoryPage = Math.min(historyPage, historyTotalPages);
+
+  const paginatedSales = useMemo(() => {
+    const start = (currentHistoryPage - 1) * SALES_PER_PAGE;
+    return filteredSortedSales.slice(start, start + SALES_PER_PAGE);
+  }, [filteredSortedSales, currentHistoryPage]);
+
+  const historyVisiblePageNumbers = useMemo(() => {
+    const maxVisiblePages = 5;
+    const startPage = Math.max(1, Math.min(currentHistoryPage - Math.floor(maxVisiblePages / 2), historyTotalPages - maxVisiblePages + 1));
+    const endPage = Math.min(historyTotalPages, startPage + maxVisiblePages - 1);
+    return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+  }, [currentHistoryPage, historyTotalPages]);
+
   return (
     <div className="space-y-6">
       {editingSale && (
@@ -352,20 +395,17 @@ export function SalesTracker({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-brand-brown">Produto</Label>
-              <select 
-                value={selectedProduct} 
-                onChange={(e) => setSelectedProduct(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown text-brand-brown"
-              >
-                <option value="">Selecione o produto...</option>
-                {products.map(p => {
-                  return (
-                    <option key={p.id} value={p.id}>
-                      {p.nome} (Qtde: {p.estoque}) - Custo: {formatCurrency(p.custo_final_brl)}
-                    </option>
-                  );
-                })}
-              </select>
+              <Combobox
+                options={products.map(p => ({
+                  value: p.id,
+                  label: `${p.nome} (Qtde: ${p.estoque}) - Custo: ${formatCurrency(p.custo_final_brl)}`,
+                  searchText: p.nome,
+                }))}
+                value={selectedProduct}
+                onChange={setSelectedProduct}
+                placeholder="Buscar produto por nome..."
+                emptyMessage="Nenhum produto encontrado."
+              />
             </div>
             <div className="space-y-2">
               <Label className="text-brand-brown">Cliente</Label>
@@ -402,6 +442,33 @@ export function SalesTracker({
           <CardTitle className="text-brand-brown">Histórico de Vendas</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {(['todos', 'pago', 'pendente', 'cancelada'] as const).map(opt => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setHistoryStatusFilter(opt)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                    historyStatusFilter === opt
+                      ? 'bg-brand-brown text-brand-bg'
+                      : 'bg-brand-bg text-brand-brown/70 hover:bg-brand-brown/10'
+                  }`}
+                >
+                  {opt === 'todos' ? 'Todos' : getStatusLabel(opt)}
+                </button>
+              ))}
+            </div>
+            <select
+              value={historySort}
+              onChange={(e) => setHistorySort(e.target.value as typeof historySort)}
+              className="h-9 rounded-md border border-brand-brown/20 bg-white px-3 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
+            >
+              <option value="recentes">Mais recentes</option>
+              <option value="maior-valor">Maior valor</option>
+              <option value="menor-valor">Menor valor</option>
+            </select>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-brand-brown/70 uppercase border-b border-brand-brown/10">
@@ -416,7 +483,7 @@ export function SalesTracker({
                 </tr>
               </thead>
               <tbody className="text-brand-brown divide-y divide-brand-brown/5">
-                {salesWithSplit.map(s => (
+                {paginatedSales.map(s => (
                   <tr key={s.id} className={s.status_pagamento === 'cancelada' ? 'opacity-60' : ''}>
                     <td className="px-4 py-3">{new Date(s.data_venda).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
@@ -460,14 +527,24 @@ export function SalesTracker({
                     </td>
                   </tr>
                 ))}
-                {salesWithSplit.length === 0 && (
+                {filteredSortedSales.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-brand-brown/50">Nenhuma venda registrada.</td>
+                    <td colSpan={7} className="px-4 py-8 text-center text-brand-brown/50">
+                      {salesWithSplit.length === 0
+                        ? 'Nenhuma venda registrada.'
+                        : 'Nenhuma venda encontrada para os filtros selecionados.'}
+                    </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentHistoryPage}
+            totalPages={historyTotalPages}
+            visiblePageNumbers={historyVisiblePageNumbers}
+            onPageChange={setHistoryPage}
+          />
         </CardContent>
       </Card>
     </div>

@@ -15,9 +15,10 @@ const PRODUCT_TYPE_OPTIONS = ['Importado', 'Árabe', 'Brand Collection', 'Contra
 interface ProductFormProps {
   trips: Trip[];
   form: InventoryFormState;
+  onCancel?: () => void;
 }
 
-export function ProductForm({ trips, form }: ProductFormProps) {
+export function ProductForm({ trips, form, onCancel }: ProductFormProps) {
   const {
     selectedTrip, setSelectedTrip,
     name, setName,
@@ -247,7 +248,7 @@ export function ProductForm({ trips, form }: ProductFormProps) {
               <Input
                 type="text"
                 inputMode="decimal"
-                placeholder="30"
+                placeholder="100"
                 className="pl-9 border-brand-brown/20 focus-visible:ring-brand-brown text-brand-brown"
                 value={margin}
                 onChange={(e) => setMargin(e.target.value)}
@@ -323,9 +324,9 @@ export function ProductForm({ trips, form }: ProductFormProps) {
           <Button onClick={handleSaveProduct} disabled={loading || !activeTrip} className="flex-1 bg-brand-brown hover:bg-brand-brown/90 text-brand-bg transition-colors">
             {loading ? 'Salvando...' : (editingProduct ? 'Salvar Alterações' : 'Adicionar ao Estoque')}
           </Button>
-          {editingProduct && (
-            <Button onClick={handleCancelEdit} variant="outline" className="border-brand-brown/20 text-brand-brown hover:bg-brand-brown/10">
-              Cancelar
+          {(editingProduct || onCancel) && (
+            <Button onClick={onCancel ?? handleCancelEdit} variant="outline" className="border-brand-brown/20 text-brand-brown hover:bg-brand-brown/10">
+              {editingProduct ? 'Cancelar' : 'Fechar'}
             </Button>
           )}
         </div>

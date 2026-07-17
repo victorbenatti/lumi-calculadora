@@ -1,7 +1,5 @@
 import {
   Building2,
-  DollarSign,
-  Info,
   Landmark,
   LayoutDashboard,
   LogOut,
@@ -16,18 +14,16 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardOverview } from "../components/DashboardOverview";
+import { ExchangeRateCard } from "../components/ExchangeRateCard";
 import { FinancialDashboard } from "../components/FinancialDashboard";
 import { Inventory } from "../components/Inventory";
 import { SalesTracker } from "../components/SalesTracker";
 import { TripManagement } from "../components/TripManagement";
 import { Button } from "../components/ui/Button";
-import { Card, CardContent } from "../components/ui/Card";
-import { Input } from "../components/ui/Input";
 import { useERP } from "../hooks/useERP";
 import { useExchangeRate } from "../hooks/useExchangeRate";
 import { supabase } from "../lib/supabase";
 import { getActiveFinancialConfig } from "../utils/finance";
-import { formatCurrency } from "../utils/parsing";
 
 type Tab = 'dashboard' | 'inventory' | 'trips' | 'sales' | 'finance';
 
@@ -79,8 +75,6 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const formattedRate = rate ? formatCurrency(rate) : '---';
-  const timeString = lastUpdated ? lastUpdated.toLocaleTimeString('pt-BR') : '---';
   const activeFinancialConfig = getActiveFinancialConfig(financialConfigs);
   const activeItem = tabItems.find(item => item.id === activeTab) || tabItems[0];
   const ActiveIcon = activeItem.icon;
@@ -145,7 +139,21 @@ export default function Admin() {
 
   const renderContent = () => (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-      {activeTab === 'dashboard' && <DashboardOverview sales={sales} products={products} trips={trips} financialConfig={activeFinancialConfig} />}
+      {activeTab === 'dashboard' && (
+        <div className="space-y-6">
+          <ExchangeRateCard
+            rate={rate}
+            rateLoading={rateLoading}
+            rateError={rateError}
+            lastUpdated={lastUpdated}
+            isManualFallback={isManualFallback}
+            manualRateInput={manualRateInput}
+            onManualRateChange={handleManualRateChange}
+            onRefetch={handleRefetchAll}
+          />
+          <DashboardOverview sales={sales} products={products} trips={trips} financialConfig={activeFinancialConfig} />
+        </div>
+      )}
       {activeTab === 'trips' && <TripManagement trips={trips} refetch={refetchERP} exchangeRate={rate} />}
       {activeTab === 'inventory' && <Inventory trips={trips} products={products} refetch={refetchERP} />}
       {activeTab === 'sales' && (
@@ -332,62 +340,6 @@ export default function Admin() {
                 Sincronizar
               </Button>
             </div>
-
-            <Card className="border-brand-brown/10 bg-white shadow-sm">
-              <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-                <div className="flex items-center gap-4">
-                  <div className="rounded-lg bg-brand-bg p-3 text-brand-brown border border-brand-brown/10">
-                    <DollarSign className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-brand-brown/75">Cotação USD → BRL</p>
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                      <h2 className="text-2xl font-extrabold tracking-tight text-brand-brown">
-                        {rateLoading && !rate ? "Calculando..." : formattedRate}
-                      </h2>
-                      {!rateLoading && (
-                        <span className="text-xs font-medium text-brand-brown/55">
-                          Atualizado às {timeString}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  {rateError && (
-                    <div className="flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700">
-                      <Info className="h-3 w-3" />
-                      API Falhou
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2">
-                    {isManualFallback || rateError ? (
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        className="h-9 w-24 border-brand-brown/30 bg-white text-brand-brown"
-                        placeholder="Manual"
-                        value={manualRateInput}
-                        onChange={(e) => handleManualRateChange(e.target.value)}
-                      />
-                    ) : null}
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRefetchAll}
-                      disabled={rateLoading}
-                      className="bg-brand-bg hover:bg-brand-brown/10 text-brand-brown border-brand-brown/20 lg:hidden"
-                    >
-                      <RefreshCcw className={`h-4 w-4 mr-2 ${rateLoading ? 'animate-spin' : ''}`} />
-                      Sincronizar
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {renderContent()}
           </main>

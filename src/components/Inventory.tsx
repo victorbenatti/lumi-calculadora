@@ -1,4 +1,7 @@
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
+import { Button } from './ui/Button';
 import type { Database } from '../types/supabase';
 import { formatCurrency, parseDecimalInput } from '../utils/parsing';
 import { ProductForm } from './Inventory/ProductForm';
@@ -17,11 +20,40 @@ interface Props {
 export function Inventory({ trips, products, refetch }: Props) {
   const form = useInventoryForm({ trips, refetch });
   const { results, customPrice, promotionActive, promotionPrice } = form;
+  const [showForm, setShowForm] = useState(false);
+
+  const handleCloseForm = () => {
+    form.handleCancelEdit();
+    setShowForm(false);
+  };
+
+  const handleEdit = (product: Product) => {
+    form.handleEditProduct(product);
+    setShowForm(true);
+  };
 
   return (
     <div className="space-y-8">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-brand-brown">
+            {showForm ? (form.editingProduct ? 'Editar Produto' : 'Novo Produto (Estoque)') : 'Estoque'}
+          </h2>
+          <p className="text-sm text-brand-brown/60">
+            {showForm ? 'Preencha os dados e salve para atualizar o estoque.' : 'Visualize e gerencie os produtos cadastrados.'}
+          </p>
+        </div>
+        {!showForm && (
+          <Button onClick={() => setShowForm(true)} className="bg-brand-brown hover:bg-brand-brown/90 text-brand-bg">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Produto
+          </Button>
+        )}
+      </div>
+
+      {showForm && (
       <div className="grid gap-6 md:grid-cols-2">
-        <ProductForm trips={trips} form={form} />
+        <ProductForm trips={trips} form={form} onCancel={handleCloseForm} />
 
         {/* Simulação Rápida */}
         <div className="space-y-6 flex flex-col">
@@ -77,10 +109,11 @@ export function Inventory({ trips, products, refetch }: Props) {
           </Card>
         </div>
       </div>
+      )}
 
       <InventoryTable
         products={products}
-        onEdit={form.handleEditProduct}
+        onEdit={handleEdit}
         onDelete={form.handleDeleteProduct}
       />
     </div>
