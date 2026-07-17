@@ -12,6 +12,7 @@ import {
   summarizeFinancialRows,
   type FinancialConfig,
 } from '../utils/finance';
+import { AIAnalysisCard } from './AIAnalysisCard';
 
 type Sale = Database['public']['Tables']['vendas']['Row'];
 type Product = Database['public']['Tables']['produtos']['Row'];
@@ -66,6 +67,7 @@ export function DashboardOverview({ sales, products, trips, financialConfig = DE
 
   return (
     <div className="space-y-6">
+      <AIAnalysisCard />
       <Card className="bg-white shadow-sm border-brand-brown/10">
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>

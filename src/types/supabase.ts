@@ -9,6 +9,51 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      analises_ia: {
+        Row: {
+          id: string
+          created_at: string
+          created_by: string
+          periodo: 'current-month' | 'last-30-days' | 'last-90-days' | 'all'
+          data_inicio: string | null
+          data_fim: string
+          relatorio: Json
+          modelo: string
+          versao_prompt: string
+          contagem_registros: Json
+          tokens_entrada: number | null
+          tokens_saida: number | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          created_by: string
+          periodo: 'current-month' | 'last-30-days' | 'last-90-days' | 'all'
+          data_inicio?: string | null
+          data_fim: string
+          relatorio: Json
+          modelo: string
+          versao_prompt: string
+          contagem_registros?: Json
+          tokens_entrada?: number | null
+          tokens_saida?: number | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          created_by?: string
+          periodo?: 'current-month' | 'last-30-days' | 'last-90-days' | 'all'
+          data_inicio?: string | null
+          data_fim?: string
+          relatorio?: Json
+          modelo?: string
+          versao_prompt?: string
+          contagem_registros?: Json
+          tokens_entrada?: number | null
+          tokens_saida?: number | null
+        }
+        Relationships: []
+      }
       viagens: {
         Row: {
           id: string
