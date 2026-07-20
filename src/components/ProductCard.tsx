@@ -61,29 +61,29 @@ function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
   };
 
   return (
-    <Card className="border border-brand-brown/5 bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_25px_rgb(61,43,31,0.08)] transition-all duration-500 flex flex-col h-full rounded-2xl group overflow-hidden">
+    <Card className="border border-brand-brown/8 bg-white shadow-card hover:shadow-lift hover:-translate-y-0.5 transition-all duration-300 flex flex-col h-full rounded-2xl group overflow-hidden">
       <div
         className="p-1.5 cursor-pointer"
         onClick={() => navigate(getProductPath(product))}
       >
-        <div className="aspect-[3/4] w-full bg-[#fcfbf9] rounded-xl overflow-hidden relative flex items-center justify-center">
+        <div className="aspect-[3/4] w-full bg-brand-surface rounded-xl overflow-hidden relative flex items-center justify-center">
           {outOfStock ? (
-            <div className="absolute top-2 right-2 z-10 bg-stone-800/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
-              <span className="text-[8px] font-bold tracking-widest uppercase text-white">
+            <div className="absolute top-2 right-2 z-10 bg-brand-deep/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+              <span className="text-[9px] font-bold tracking-[0.12em] uppercase text-white">
                 Esgotado
               </span>
             </div>
           ) : isLowStock && (
-            <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
-              <span className="text-[8px] font-bold tracking-widest uppercase text-red-800">
+            <div className="absolute top-2 right-2 z-10 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+              <span className="text-[9px] font-bold tracking-[0.12em] uppercase text-red-800">
                 Últimas un.
               </span>
             </div>
           )}
           {product.mais_vendido && (
-            <div className="absolute top-2 left-2 z-10 bg-emerald-600/95 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+            <div className="absolute top-2 left-2 z-10 bg-emerald-600/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm flex items-center gap-1">
               <Flame className="w-2.5 h-2.5 text-white" />
-              <span className="text-[8px] font-bold tracking-wider uppercase text-white">
+              <span className="text-[9px] font-bold tracking-[0.1em] uppercase text-white">
                 Top
               </span>
             </div>
@@ -91,7 +91,7 @@ function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
 
           {product.imagem_url ? (
             <>
-              {!imageLoaded && <div className="absolute inset-0 bg-stone-100 animate-pulse" />}
+              {!imageLoaded && <div className="absolute inset-0 bg-brand-sand/60 animate-pulse" />}
               <img
                 src={product.imagem_url}
                 alt={product.nome}
@@ -116,19 +116,19 @@ function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
           onClick={() => navigate(getProductPath(product))}
         >
           <div className="flex items-center gap-1.5 mb-1">
-            <p className="text-[9px] uppercase tracking-[0.15em] text-brand-brown/40 font-bold">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-brand-brown/45 font-semibold">
               {product.categoria || 'Fragrância'}
             </p>
             {product.volume && (
               <>
-                <span className="text-[7px] text-brand-brown/25">•</span>
-                <p className="text-[9px] uppercase tracking-[0.15em] text-brand-brown/40 font-bold">
+                <span className="text-[8px] text-brand-brown/25">•</span>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-brand-brown/45 font-semibold">
                   {product.volume}
                 </p>
               </>
             )}
           </div>
-          <h3 className="font-semibold text-sm text-brand-brown leading-snug group-hover:text-amber-900 transition-colors line-clamp-2">
+          <h3 className="font-semibold text-sm text-brand-brown leading-snug group-hover:text-brand-deep transition-colors line-clamp-2">
             {product.nome}
           </h3>
         </div>
@@ -175,15 +175,15 @@ function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
                 {(product.notas_topo || product.notas_coracao || product.notas_fundo) && (
                   <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-brand-brown/5">
                     <div className="flex flex-col items-center text-center">
-                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Topo</span>
+                      <span className="text-[9px] uppercase tracking-[0.12em] text-brand-brown/45 font-semibold">Topo</span>
                       <span className="text-[10px] text-brand-brown leading-tight">{product.notas_topo || '-'}</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
-                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Coração</span>
+                      <span className="text-[9px] uppercase tracking-[0.12em] text-brand-brown/45 font-semibold">Coração</span>
                       <span className="text-[10px] text-brand-brown leading-tight">{product.notas_coracao || '-'}</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
-                      <span className="text-[8px] uppercase tracking-widest text-brand-brown/40 font-bold">Fundo</span>
+                      <span className="text-[9px] uppercase tracking-[0.12em] text-brand-brown/45 font-semibold">Fundo</span>
                       <span className="text-[10px] text-brand-brown leading-tight">{product.notas_fundo || '-'}</span>
                     </div>
                   </div>
@@ -218,10 +218,10 @@ function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
         <Button
           onClick={handleProductAction}
           disabled={reachedStockLimit}
-          className={`w-full mt-3 rounded-xl py-2.5 text-xs font-medium tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all duration-300 disabled:bg-stone-200 disabled:text-stone-500 disabled:shadow-none ${
+          className={`w-full mt-3 rounded-xl py-2.5 text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all duration-300 disabled:bg-brand-sand disabled:text-brand-brown/40 disabled:shadow-none ${
             outOfStock
-              ? 'bg-stone-900 hover:bg-stone-800 text-white'
-              : 'bg-brand-brown hover:bg-[#2A1D15] text-white'
+              ? 'bg-brand-deep hover:bg-brand-brown text-white'
+              : 'bg-brand-brown hover:bg-brand-deep text-white'
           }`}
         >
           {outOfStock ? <MessageCircle className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}

@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
+import { Select } from './ui/Select';
 import { FinancialCharts } from './FinancialCharts';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
@@ -176,14 +177,14 @@ export function FinancialDashboard({
   };
 
   const metricCards = [
-    { label: 'Faturamento pago', value: summary.revenue, icon: CircleDollarSign, tone: 'bg-brand-bg text-brand-brown' },
-    { label: 'Custo vendido', value: summary.cost, icon: WalletCards, tone: 'bg-white text-brand-brown' },
-    { label: 'Reposição', value: summary.replacement, icon: PiggyBank, tone: 'bg-amber-50 text-amber-900' },
-    { label: 'Caixa da empresa', value: summary.cashReserve, icon: Landmark, tone: 'bg-stone-100 text-stone-900' },
-    { label: 'Lucro distribuível', value: summary.distributableProfit, icon: TrendingUp, tone: 'bg-emerald-50 text-emerald-900' },
-    { label: 'Saldo Victor', value: summary.yourBalance, icon: HandCoins, tone: 'bg-sky-50 text-sky-900' },
-    { label: 'Saldo Mirella', value: summary.motherBalance, icon: Coins, tone: 'bg-rose-50 text-rose-900' },
-    { label: 'Retiradas feitas', value: summary.withdrawals, icon: Banknote, tone: 'bg-white text-brand-brown' },
+    { label: 'Faturamento pago', value: summary.revenue, icon: CircleDollarSign, chip: 'bg-brand-sand/70 text-brand-brown' },
+    { label: 'Custo vendido', value: summary.cost, icon: WalletCards, chip: 'bg-brand-sand/70 text-brand-brown' },
+    { label: 'Reposição', value: summary.replacement, icon: PiggyBank, chip: 'bg-amber-50 text-amber-700' },
+    { label: 'Caixa da empresa', value: summary.cashReserve, icon: Landmark, chip: 'bg-brand-sand/70 text-brand-brown' },
+    { label: 'Lucro distribuível', value: summary.distributableProfit, icon: TrendingUp, chip: 'bg-emerald-50 text-emerald-700' },
+    { label: 'Saldo Victor', value: summary.yourBalance, icon: HandCoins, chip: 'bg-sky-50 text-sky-700' },
+    { label: 'Saldo Mirella', value: summary.motherBalance, icon: Coins, chip: 'bg-rose-50 text-rose-700' },
+    { label: 'Retiradas feitas', value: summary.withdrawals, icon: Banknote, chip: 'bg-brand-sand/70 text-brand-brown' },
   ];
 
   return (
@@ -211,14 +212,16 @@ export function FinancialDashboard({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {metricCards.map(({ label, value, icon: Icon, tone }) => (
-          <div key={label} className={`rounded-lg border border-brand-brown/10 p-4 shadow-sm ${tone}`}>
+        {metricCards.map(({ label, value, icon: Icon, chip }) => (
+          <div key={label} className="rounded-2xl border border-brand-brown/8 bg-white p-4 shadow-card transition-shadow hover:shadow-lift">
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{label}</p>
-                <p className="mt-2 text-xl font-bold tracking-tight">{formatCurrency(value)}</p>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-brown/45">{label}</p>
+                <p className="mt-1.5 truncate text-xl font-bold tracking-tight text-brand-brown">{formatCurrency(value)}</p>
               </div>
-              <Icon className="h-5 w-5 opacity-45" />
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${chip}`}>
+                <Icon className="h-4.5 w-4.5" />
+              </span>
             </div>
           </div>
         ))}
@@ -232,7 +235,7 @@ export function FinancialDashboard({
       />
 
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <Card className="bg-white border-brand-brown/10 shadow-sm">
+        <Card>
           <CardHeader>
             <CardTitle className="text-brand-brown">Regra financeira ativa</CardTitle>
             <CardDescription>
@@ -265,7 +268,7 @@ export function FinancialDashboard({
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-brand-brown/10 shadow-sm">
+        <Card>
           <CardHeader>
             <CardTitle className="text-brand-brown">Registrar retirada</CardTitle>
             <CardDescription>Retiradas abatem apenas o saldo da pessoa selecionada.</CardDescription>
@@ -274,14 +277,13 @@ export function FinancialDashboard({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-brand-brown">Pessoa</Label>
-                <select
+                <Select
                   value={withdrawalPerson}
                   onChange={(e) => setWithdrawalPerson(e.target.value as 'voce' | 'mae')}
-                  className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
                 >
                   <option value="voce">Victor</option>
                   <option value="mae">Mirella</option>
-                </select>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label className="text-brand-brown">Valor</Label>
@@ -303,7 +305,7 @@ export function FinancialDashboard({
         </Card>
       </div>
 
-      <Card className="bg-white border-brand-brown/10 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="text-brand-brown">Vendas e reservas</CardTitle>
           <CardDescription>
@@ -370,7 +372,7 @@ export function FinancialDashboard({
         </CardContent>
       </Card>
 
-      <Card className="bg-white border-brand-brown/10 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="text-brand-brown">Retiradas registradas</CardTitle>
           <CardDescription>Histórico simples para manter o saldo distribuível sob controle.</CardDescription>

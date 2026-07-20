@@ -29,16 +29,16 @@ export function ExchangeRateCard({
   const timeString = lastUpdated ? lastUpdated.toLocaleTimeString('pt-BR') : '---';
 
   return (
-    <Card className="border-brand-brown/10 bg-white shadow-sm">
+    <Card>
       <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="flex items-center gap-4">
-          <div className="rounded-lg bg-brand-bg p-3 text-brand-brown border border-brand-brown/10">
+          <div className="rounded-xl bg-brand-sand/60 p-3 text-brand-brown">
             <DollarSign className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-bold text-brand-brown/75">Cotação USD → BRL</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-brown/45">Cotação USD → BRL</p>
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <h2 className="text-2xl font-extrabold tracking-tight text-brand-brown">
+              <h2 className="text-2xl font-bold tracking-tight text-brand-brown">
                 {rateLoading && !rate ? "Calculando..." : formattedRate}
               </h2>
               {!rateLoading && (

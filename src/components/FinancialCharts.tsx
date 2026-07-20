@@ -273,7 +273,7 @@ export function FinancialCharts({ rows, summary, period, financialWithdrawals }:
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-      <Card className="bg-white border-brand-brown/10 shadow-sm">
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -299,7 +299,7 @@ export function FinancialCharts({ rows, summary, period, financialWithdrawals }:
         </CardContent>
       </Card>
 
-      <Card className="bg-white border-brand-brown/10 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-brand-brown">
             <Lightbulb className="h-5 w-5 text-amber-700" />
@@ -313,7 +313,7 @@ export function FinancialCharts({ rows, summary, period, financialWithdrawals }:
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2 xl:col-span-2">
-        <Card className="bg-white border-brand-brown/10 shadow-sm">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-brand-brown">
               <PieChart className="h-5 w-5 text-amber-700" />
@@ -326,7 +326,7 @@ export function FinancialCharts({ rows, summary, period, financialWithdrawals }:
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-brand-brown/10 shadow-sm">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-brand-brown">
               <Scale className="h-5 w-5 text-emerald-700" />

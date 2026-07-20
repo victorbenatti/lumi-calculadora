@@ -22,7 +22,7 @@ export function CartDrawer() {
     <>
       <Button
         onClick={openCart}
-        className="fixed bottom-5 right-5 z-40 h-14 rounded-full bg-brand-brown px-5 text-white shadow-[0_18px_45px_rgba(61,43,31,0.25)] hover:bg-[#2A1D15] flex items-center gap-2"
+        className="fixed bottom-5 right-5 z-40 h-14 rounded-full bg-brand-brown px-5 text-white shadow-lift hover:bg-brand-deep flex items-center gap-2"
         aria-label="Abrir carrinho"
       >
         <ShoppingBag className="w-5 h-5" />
@@ -52,7 +52,7 @@ export function CartDrawer() {
               className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl"
               aria-label="Carrinho de compras"
             >
-              <div className="flex items-center justify-between border-b border-brand-brown/10 bg-[#fdfbf9] px-5 py-5">
+              <div className="flex items-center justify-between border-b border-brand-brown/10 bg-brand-surface px-5 py-5">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brand-brown/40">
                     Carrinho de Zap
@@ -73,7 +73,7 @@ export function CartDrawer() {
               <div className="flex-1 overflow-y-auto px-5 py-5">
                 {items.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center text-center">
-                    <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-stone-50">
+                    <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-brand-sand/50">
                       <ShoppingBag className="h-8 w-8 text-brand-brown/20" />
                     </div>
                     <h3 className="text-xl font-light text-brand-brown">
@@ -85,7 +85,7 @@ export function CartDrawer() {
                     <Button
                       onClick={closeCart}
                       variant="outline"
-                      className="mt-7 h-11 rounded-full border-brand-brown/20 px-6 text-brand-brown hover:bg-stone-50"
+                      className="mt-7 h-11 rounded-full border-brand-brown/20 px-6 text-brand-brown hover:bg-brand-surface"
                     >
                       Continuar comprando
                     </Button>
@@ -98,7 +98,7 @@ export function CartDrawer() {
                       return (
                         <div
                           key={item.id}
-                          className="rounded-2xl border border-brand-brown/10 bg-[#fcfbf9] p-3 shadow-[0_8px_25px_rgba(61,43,31,0.04)]"
+                          className="rounded-2xl border border-brand-brown/10 bg-brand-surface p-3 shadow-card"
                         >
                           <div className="flex gap-3">
                             <div className="flex h-20 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
@@ -136,7 +136,7 @@ export function CartDrawer() {
                                 <div className="flex items-center rounded-full border border-brand-brown/10 bg-white p-1">
                                   <button
                                     onClick={() => decreaseItem(item.id)}
-                                    className="flex h-7 w-7 items-center justify-center rounded-full text-brand-brown/60 transition-colors hover:bg-stone-50 hover:text-brand-brown"
+                                    className="flex h-7 w-7 items-center justify-center rounded-full text-brand-brown/60 transition-colors hover:bg-brand-surface hover:text-brand-brown"
                                     aria-label={`Diminuir quantidade de ${item.nome}`}
                                   >
                                     <Minus className="h-3.5 w-3.5" />
@@ -147,7 +147,7 @@ export function CartDrawer() {
                                   <button
                                     onClick={() => increaseItem(item.id)}
                                     disabled={reachedLimit}
-                                    className="flex h-7 w-7 items-center justify-center rounded-full text-brand-brown/60 transition-colors hover:bg-stone-50 hover:text-brand-brown disabled:cursor-not-allowed disabled:opacity-30"
+                                    className="flex h-7 w-7 items-center justify-center rounded-full text-brand-brown/60 transition-colors hover:bg-brand-surface hover:text-brand-brown disabled:cursor-not-allowed disabled:opacity-30"
                                     aria-label={`Aumentar quantidade de ${item.nome}`}
                                   >
                                     <Plus className="h-3.5 w-3.5" />
@@ -191,7 +191,7 @@ export function CartDrawer() {
                 <Button
                   onClick={checkoutWhatsApp}
                   disabled={items.length === 0}
-                  className="h-14 w-full rounded-2xl bg-brand-brown text-base font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#2A1D15] hover:shadow-xl disabled:translate-y-0 disabled:bg-stone-200 disabled:text-stone-500 disabled:shadow-none"
+                  className="h-14 w-full rounded-2xl bg-brand-brown text-base font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-brand-deep hover:shadow-xl disabled:translate-y-0 disabled:bg-brand-sand disabled:text-brand-brown/40 disabled:shadow-none"
                 >
                   Finalizar pelo WhatsApp
                 </Button>
@@ -201,7 +201,7 @@ export function CartDrawer() {
                     <Button
                       onClick={closeCart}
                       variant="outline"
-                      className="h-11 rounded-xl border-brand-brown/15 text-brand-brown hover:bg-stone-50"
+                      className="h-11 rounded-xl border-brand-brown/15 text-brand-brown hover:bg-brand-surface"
                     >
                       Continuar comprando
                     </Button>

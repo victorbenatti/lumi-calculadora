@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { Button } from '../ui/Button';
+import { Select } from '../ui/Select';
 import { Pagination } from '../Pagination';
 import type { Database } from '../../types/supabase';
 import { formatCurrency } from '../../utils/parsing';
@@ -94,7 +95,7 @@ export function InventoryTable({ products, onEdit, onDelete }: InventoryTablePro
   }, [currentPage, totalPages]);
 
   return (
-    <Card className="bg-white border-brand-brown/10 shadow-sm">
+    <Card>
       <CardHeader>
         <CardTitle className="text-brand-brown">Produtos Cadastrados</CardTitle>
         <CardDescription className="text-brand-brown/70">
@@ -115,47 +116,44 @@ export function InventoryTable({ products, onEdit, onDelete }: InventoryTablePro
           </div>
           <div className="space-y-2">
             <Label className="text-brand-brown">Categoria</Label>
-            <select
+            <Select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
             >
               {categories.map(category => (
                 <option key={category} value={category}>{category}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label className="text-brand-brown">Origem / Linha</Label>
-            <select
+            <Select
               value={tipoFilter}
               onChange={(e) => setTipoFilter(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
             >
               {tipos.map(tipo => (
                 <option key={tipo} value={tipo}>{tipo}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label className="text-brand-brown">Ordenar por</Label>
-            <select
+            <Select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value as SortOption)}
-              className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
             >
               <option value="nome">Nome (A-Z)</option>
               <option value="maior-estoque">Maior quantidade</option>
               <option value="menor-estoque">Menor quantidade</option>
               <option value="maior-preco">Maior preço</option>
               <option value="menor-preco">Menor preço</option>
-            </select>
+            </Select>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-brand-brown/80">
-            <thead className="text-xs uppercase bg-brand-bg text-brand-brown/60">
+            <thead className="text-[11px] font-semibold uppercase tracking-[0.08em] bg-brand-sand/50 text-brand-brown/60">
               <tr>
                 <th className="px-4 py-3 rounded-tl-md">Foto</th>
                 <th className="px-4 py-3">Nome</th>

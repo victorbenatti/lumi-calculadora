@@ -95,7 +95,7 @@ function PocketPerfumesSection({
   const referenceCount = products.filter(product => product.inspirado_em).length;
 
   return (
-    <section className="border-y border-brand-brown/10 bg-white/65 py-6 sm:rounded-2xl sm:border sm:px-5 sm:shadow-[0_10px_35px_rgba(61,43,31,0.04)]">
+    <section className="border-y border-brand-brown/10 bg-white/65 py-6 sm:rounded-2xl sm:border sm:px-5 sm:shadow-card">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-2 flex items-center gap-2">
@@ -118,7 +118,7 @@ function PocketPerfumesSection({
           type="button"
           variant="outline"
           onClick={onViewCollection}
-          className="h-10 w-full rounded-full border-brand-brown/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.16em] text-brand-brown hover:bg-stone-50 sm:w-auto"
+          className="h-10 w-full rounded-full border-brand-brown/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.16em] text-brand-brown hover:bg-brand-surface sm:w-auto"
         >
           Ver 30ml
           <ArrowRight className="h-4 w-4" />
@@ -131,7 +131,7 @@ function PocketPerfumesSection({
           { label: 'Viagem', icon: Plane },
           { label: 'Presente', icon: Gift },
         ].map(({ label, icon: Icon }) => (
-          <div key={label} className="flex items-center justify-center gap-1.5 rounded-full border border-brand-brown/10 bg-[#fcfbf9] px-2 py-2 text-[10px] font-bold uppercase tracking-[0.12em]">
+          <div key={label} className="flex items-center justify-center gap-1.5 rounded-full border border-brand-brown/10 bg-brand-surface px-2 py-2 text-[10px] font-bold uppercase tracking-[0.12em]">
             <Icon className="h-3.5 w-3.5" />
             <span>{label}</span>
           </div>
@@ -375,6 +375,14 @@ export default function Catalogo() {
 
   const clearFilters = () => setFilters({ ...filters, categoria: 'Todos', tipo: 'Todos', precoFaixa: 'Todos' });
 
+  const activeFilterChips = useMemo(() => {
+    const chips: Array<{ key: 'categoria' | 'tipo' | 'precoFaixa'; label: string }> = [];
+    if (filters.categoria !== 'Todos') chips.push({ key: 'categoria', label: filters.categoria });
+    if (filters.tipo !== 'Todos') chips.push({ key: 'tipo', label: filters.tipo });
+    if (filters.precoFaixa !== 'Todos') chips.push({ key: 'precoFaixa', label: filters.precoFaixa });
+    return chips;
+  }, [filters.categoria, filters.tipo, filters.precoFaixa]);
+
   const setFilterValue = <K extends keyof CatalogFilters>(key: K, value: CatalogFilters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
@@ -425,7 +433,7 @@ export default function Catalogo() {
 
         <section className="relative border-b border-brand-brown/5 bg-white">
           <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-            <div className="relative overflow-hidden rounded-[1.75rem] border border-brand-brown/10 bg-stone-100 shadow-[0_18px_50px_-35px_rgba(61,43,31,0.45)]">
+            <div className="relative overflow-hidden rounded-3xl border border-brand-brown/10 bg-brand-sand/60 shadow-lift">
               <AnimatePresence mode="wait">
                 {heroSlides.map((slide, index) => (
                   index === currentHeroSlide && (
@@ -447,7 +455,7 @@ export default function Catalogo() {
                           alt={slide.alt}
                           loading={index === 0 ? 'eager' : 'lazy'}
                           fetchPriority={index === 0 ? 'high' : 'auto'}
-                          className="aspect-[4/5] w-full bg-stone-100 object-cover sm:aspect-[16/7] lg:aspect-[21/8]"
+                          className="aspect-[4/5] w-full bg-brand-sand/60 object-cover sm:aspect-[16/7] lg:aspect-[21/8]"
                         />
                       </picture>
                     </motion.button>
@@ -479,7 +487,7 @@ export default function Catalogo() {
 
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-56 lg:w-64 shrink-0">
-          <div className="sticky top-8 bg-white p-6 rounded-[2rem] border border-brand-brown/5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.03)]">
+          <div className="sticky top-8 bg-white p-6 rounded-2xl border border-brand-brown/5 shadow-card">
             <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2 mb-6">
               <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
             </h2>
@@ -505,7 +513,7 @@ export default function Catalogo() {
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 className="fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white shadow-2xl z-50 md:hidden flex flex-col"
               >
-                <div className="flex items-center justify-between p-6 border-b border-brand-brown/10 bg-[#fdfbf9]">
+                <div className="flex items-center justify-between p-6 border-b border-brand-brown/10 bg-brand-surface">
                   <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2">
                     <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
                   </h2>
@@ -516,10 +524,10 @@ export default function Catalogo() {
                 <div className="p-6 overflow-y-auto flex-1">
                   <FilterPanel filters={filters} onChange={setFilterValue} onClear={clearFilters} />
                 </div>
-                <div className="p-6 border-t border-brand-brown/10 bg-[#fdfbf9]">
+                <div className="p-6 border-t border-brand-brown/10 bg-brand-surface">
                   <Button
                     onClick={() => setIsMobileFiltersOpen(false)}
-                    className="w-full bg-brand-brown hover:bg-[#2A1D15] text-white py-6 rounded-2xl text-base font-medium shadow-md"
+                    className="w-full bg-brand-brown hover:bg-brand-deep text-white py-6 rounded-2xl text-base font-medium shadow-md"
                   >
                     Ver Resultados ({filteredProducts.length})
                   </Button>
@@ -534,20 +542,20 @@ export default function Catalogo() {
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="flex flex-col h-full bg-white rounded-2xl p-1.5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-brand-brown/5">
-                  <div className="aspect-[3/4] bg-stone-100/80 rounded-xl animate-pulse w-full mb-2"></div>
+                <div key={i} className="flex flex-col h-full bg-white rounded-2xl p-1.5 shadow-card border border-brand-brown/5">
+                  <div className="aspect-[3/4] bg-brand-sand/60 rounded-xl animate-pulse w-full mb-2"></div>
                   <div className="px-2 pb-2 flex flex-col gap-2">
-                    <div className="h-2.5 w-1/3 bg-stone-100 animate-pulse rounded-full"></div>
-                    <div className="h-3.5 w-4/5 bg-stone-100 animate-pulse rounded-full"></div>
-                    <div className="h-5 w-1/2 bg-stone-100 animate-pulse rounded-full mt-1"></div>
-                    <div className="h-8 w-full bg-stone-100 animate-pulse rounded-xl mt-1"></div>
+                    <div className="h-2.5 w-1/3 bg-brand-sand/60 animate-pulse rounded-full"></div>
+                    <div className="h-3.5 w-4/5 bg-brand-sand/60 animate-pulse rounded-full"></div>
+                    <div className="h-5 w-1/2 bg-brand-sand/60 animate-pulse rounded-full mt-1"></div>
+                    <div className="h-8 w-full bg-brand-sand/60 animate-pulse rounded-xl mt-1"></div>
                   </div>
                 </div>
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-[2rem] border border-brand-brown/5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.02)] h-full">
-              <div className="w-24 h-24 bg-stone-50 rounded-full flex items-center justify-center mb-6">
+            <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-brand-brown/5 shadow-card h-full">
+              <div className="w-24 h-24 bg-brand-sand/50 rounded-full flex items-center justify-center mb-6">
                 <Package className="h-10 w-10 text-brand-brown/20" />
               </div>
               <h3 className="text-2xl font-light text-brand-brown mb-2">Nenhuma fragrância encontrada</h3>
@@ -555,7 +563,7 @@ export default function Catalogo() {
               <Button
                 variant="outline"
                 onClick={clearFilters}
-                className="mt-8 rounded-full px-8 border-brand-brown/20 text-brand-brown hover:bg-stone-50"
+                className="mt-8 rounded-full px-8 border-brand-brown/20 text-brand-brown hover:bg-brand-surface"
               >
                 Limpar Filtros
               </Button>
@@ -592,9 +600,9 @@ export default function Catalogo() {
 
               {/* Catálogo Completo */}
               <section id="catalogo" ref={catalogSectionRef} className="scroll-mt-32">
-                <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h2 className="text-base font-medium text-brand-brown tracking-tight">
+                    <h2 className="text-lg font-semibold text-brand-brown tracking-tight">
                       Catálogo Completo
                     </h2>
                     <span className="text-xs text-brand-brown/50 font-medium">
@@ -607,6 +615,29 @@ export default function Catalogo() {
                     </span>
                   )}
                 </div>
+
+                {activeFilterChips.length > 0 && (
+                  <div className="mb-5 flex flex-wrap items-center gap-2">
+                    {activeFilterChips.map(chip => (
+                      <button
+                        key={chip.key}
+                        type="button"
+                        onClick={() => setFilterValue(chip.key, 'Todos')}
+                        className="group/chip flex items-center gap-1.5 rounded-full border border-brand-brown/15 bg-white px-3 py-1.5 text-xs font-semibold text-brand-brown shadow-card transition-colors hover:border-brand-brown/30 hover:bg-brand-surface"
+                      >
+                        {chip.label}
+                        <X className="h-3 w-3 text-brand-brown/40 transition-colors group-hover/chip:text-brand-brown" />
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-brand-brown/50 underline-offset-2 transition-colors hover:text-brand-brown hover:underline"
+                    >
+                      Limpar tudo
+                    </button>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                   {paginatedProducts.map((product) => (
                     <ProductCard key={`all-${product.id}`} product={product} onAddToCart={handleAddToCart} />

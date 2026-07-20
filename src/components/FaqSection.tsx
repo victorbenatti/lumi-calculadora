@@ -21,7 +21,7 @@ export function FaqSection({ eyebrow, title, description, items, className = '' 
   return (
     <section className={className}>
       <div className="mb-6 flex items-start gap-3">
-        <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-brown text-white shadow-[0_10px_24px_rgba(61,43,31,0.16)]">
+        <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-brown text-white shadow-lift">
           <HelpCircle className="h-4 w-4" />
         </div>
         <div>
@@ -41,7 +41,7 @@ export function FaqSection({ eyebrow, title, description, items, className = '' 
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-brand-brown/10 bg-white shadow-[0_8px_30px_rgba(61,43,31,0.04)]">
+      <div className="overflow-hidden rounded-2xl border border-brand-brown/10 bg-white shadow-card">
         {items.map((item, index) => {
           const isOpen = openIndex === index;
 
@@ -50,7 +50,7 @@ export function FaqSection({ eyebrow, title, description, items, className = '' 
               <button
                 type="button"
                 onClick={() => setOpenIndex(isOpen ? -1 : index)}
-                className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-[#fcfbf9] sm:px-5"
+                className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-brand-surface sm:px-5"
               >
                 <span className="text-sm font-semibold leading-snug text-brand-brown sm:text-base">
                   {item.question}

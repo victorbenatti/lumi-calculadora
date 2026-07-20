@@ -132,16 +132,16 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.98 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
-          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-brand-brown/10 bg-white shadow-[0_18px_45px_rgba(61,43,31,0.14)]"
+          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-brand-brown/10 bg-white shadow-lift"
         >
           {suggestionsLoading ? (
             <div className="space-y-2 p-3">
               {[...Array(3)].map((_, index) => (
                 <div key={index} className="flex items-center gap-3">
-                  <div className="h-12 w-10 animate-pulse rounded-xl bg-stone-100" />
+                  <div className="h-12 w-10 animate-pulse rounded-xl bg-brand-sand/60" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-3 w-3/4 animate-pulse rounded-full bg-stone-100" />
-                    <div className="h-2.5 w-1/3 animate-pulse rounded-full bg-stone-100" />
+                    <div className="h-3 w-3/4 animate-pulse rounded-full bg-brand-sand/60" />
+                    <div className="h-2.5 w-1/3 animate-pulse rounded-full bg-brand-sand/60" />
                   </div>
                 </div>
               ))}
@@ -159,9 +159,9 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
                       event.preventDefault();
                       goToProduct(product);
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-[#fcfbf9]"
+                    className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-brand-surface"
                   >
-                    <div className="flex h-14 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#fcfbf9]">
+                    <div className="flex h-14 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-surface">
                       {product.imagem_url ? (
                         <img src={product.imagem_url} alt={product.nome} className="h-full w-full object-cover" />
                       ) : (
@@ -201,7 +201,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
         onFocus={() => setSearchFocused(true)}
         onBlur={() => window.setTimeout(() => setSearchFocused(false), 120)}
         onChange={(event) => updateSearchValue(event.target.value)}
-        className="h-11 rounded-full border-brand-brown/10 bg-[#fcfbf9] pl-11 pr-4 text-sm text-brand-brown shadow-inner placeholder:text-brand-brown/35 focus-visible:border-brand-brown/25 focus-visible:ring-1 focus-visible:ring-brand-brown/20"
+        className="h-11 rounded-full border-brand-brown/10 bg-brand-surface pl-11 pr-4 text-sm text-brand-brown shadow-inner placeholder:text-brand-brown/35 focus-visible:border-brand-brown/25 focus-visible:ring-1 focus-visible:ring-brand-brown/20"
       />
       {searchResults}
     </div>
@@ -217,14 +217,14 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
         onFocus={() => setSearchFocused(true)}
         onBlur={() => window.setTimeout(() => setSearchFocused(false), 120)}
         onChange={(event) => updateSearchValue(event.target.value)}
-        className="h-10 rounded-full border-brand-brown/10 bg-[#fcfbf9] pl-11 pr-4 text-sm text-brand-brown shadow-inner placeholder:text-brand-brown/35 focus-visible:border-brand-brown/25 focus-visible:ring-1 focus-visible:ring-brand-brown/20"
+        className="h-10 rounded-full border-brand-brown/10 bg-brand-surface pl-11 pr-4 text-sm text-brand-brown shadow-inner placeholder:text-brand-brown/35 focus-visible:border-brand-brown/25 focus-visible:ring-1 focus-visible:ring-brand-brown/20"
       />
       {searchResults}
     </div>
   );
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-brand-brown/10 bg-white/95 shadow-[0_10px_30px_rgba(61,43,31,0.06)] backdrop-blur-xl">
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-brand-brown/10 bg-white/95 shadow-card backdrop-blur-xl">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8 md:h-[72px]">
         {hasFilterButton && (
           <Button
@@ -232,7 +232,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
             onClick={openMobileFilters}
             variant="outline"
             size="icon-lg"
-            className="md:hidden rounded-full border-brand-brown bg-brand-brown text-white shadow-[0_10px_24px_rgba(61,43,31,0.18)] hover:bg-[#2A1D15]"
+            className="md:hidden rounded-full border-brand-brown bg-brand-brown text-white shadow-lift hover:bg-brand-deep"
             aria-label="Abrir filtros"
             title="Filtros"
           >
@@ -249,7 +249,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className="pointer-events-none absolute left-3 top-[58px] z-10 md:hidden"
             >
-              <div className="relative rounded-xl bg-brand-brown px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_12px_28px_rgba(61,43,31,0.22)]">
+              <div className="relative rounded-xl bg-brand-brown px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-lift">
                 Filtre sua busca
                 <span className="absolute -top-1 left-6 h-3 w-3 rotate-45 bg-brand-brown" />
               </div>
@@ -287,7 +287,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
           <Button
             type="button"
             onClick={openCart}
-            className="relative h-10 rounded-full bg-brand-brown px-3 text-white hover:bg-[#2A1D15] md:px-4"
+            className="relative h-10 rounded-full bg-brand-brown px-3 text-white hover:bg-brand-deep md:px-4"
             aria-label="Abrir carrinho"
             title="Carrinho"
           >

@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { Button } from '../ui/Button';
+import { Select } from '../ui/Select';
 import { BadgePercent, CheckCircle2, DollarSign, Flame, Package, Percent, Plus, Sparkles } from 'lucide-react';
 import type { Database } from '../../types/supabase';
 import { formatCurrency } from '../../utils/parsing';
@@ -143,27 +144,25 @@ export function ProductForm({ trips, form, onCancel }: ProductFormProps) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label className="text-brand-brown">Origem / Linha</Label>
-            <select
+            <Select
               value={tipo}
               onChange={(e) => setTipo(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown text-brand-brown"
             >
               {PRODUCT_TYPE_OPTIONS.map(option => (
                 <option key={option} value={option}>{option}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label className="text-brand-brown">Categoria</Label>
-            <select
+            <Select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown text-brand-brown"
             >
               <option value="Unissex">Unissex</option>
               <option value="Masculino">Masculino</option>
               <option value="Feminino">Feminino</option>
-            </select>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label className="text-brand-brown">Volume</Label>
@@ -177,10 +176,9 @@ export function ProductForm({ trips, form, onCancel }: ProductFormProps) {
           </div>
           <div className="space-y-2">
             <Label className="text-brand-brown">Viagem/Cotação</Label>
-            <select
+            <Select
               value={selectedTrip}
               onChange={(e) => setSelectedTrip(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown text-brand-brown"
             >
               <option value="">Selecione...</option>
               {trips.map(t => (
@@ -188,7 +186,7 @@ export function ProductForm({ trips, form, onCancel }: ProductFormProps) {
                   {new Date(t.data).toLocaleDateString()} - Cot: {formatCurrency(t.cotacao_dolar)}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 

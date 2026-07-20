@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
-import { AlertTriangle, Award, CircleDollarSign, HandCoins, Package, TrendingUp } from 'lucide-react';
+import { StatCard } from './ui/StatCard';
+import { Select } from './ui/Select';
+import { AlertTriangle, Award, Boxes, CircleDollarSign, HandCoins, Package, TrendingUp } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import {
   buildAvailableSaleMonths,
@@ -68,93 +70,78 @@ export function DashboardOverview({ sales, products, trips, financialConfig = DE
   return (
     <div className="space-y-6">
       <AIAnalysisCard />
-      <Card className="bg-white shadow-sm border-brand-brown/10">
+
+      <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="text-brand-brown">Visão Financeira</CardTitle>
-            <CardDescription className="text-brand-brown/70">Resumo de receitas e lucros (Vendas Pagas).</CardDescription>
+            <CardDescription>Resumo de receitas e lucros (Vendas Pagas).</CardDescription>
           </div>
-          <select
+          <Select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="h-9 w-full rounded-md border border-brand-brown/20 bg-white px-3 text-sm font-medium text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown sm:w-56"
+            className="w-full sm:w-56"
           >
             <option value="all">Todo o período</option>
             {availableMonths.map(monthKey => (
               <option key={monthKey} value={monthKey}>{formatMonthKeyLabel(monthKey)}</option>
             ))}
-          </select>
+          </Select>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl bg-brand-bg border border-brand-brown/20 p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-brand-brown/80">Receita Total</p>
-              <h3 className="text-2xl font-bold text-brand-brown mt-1">{formatCurrency(totalRevenue)}</h3>
-            </div>
-            <CircleDollarSign className="text-brand-brown/30 h-8 w-8" />
-          </div>
-
-          <div className="rounded-xl bg-[#e3eedd] border border-emerald-900/10 p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-emerald-900/80">Lucro Bruto</p>
-              <h3 className="text-2xl font-bold text-emerald-900 mt-1">{formatCurrency(netProfit)}</h3>
-            </div>
-            <HandCoins className="text-emerald-900/30 h-8 w-8" />
-          </div>
-
-          <div className="rounded-xl bg-white border border-brand-brown/20 p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-brand-brown/80">ROI em Tempo Real</p>
-              <h3 className="text-2xl font-bold text-brand-brown mt-1">{roi.toFixed(2)}%</h3>
-            </div>
-            <TrendingUp className="text-brand-brown/30 h-8 w-8" />
-          </div>
+        <CardContent className="grid gap-3 sm:grid-cols-3">
+          <StatCard
+            label="Receita Total"
+            value={formatCurrency(totalRevenue)}
+            icon={CircleDollarSign}
+          />
+          <StatCard
+            label="Lucro Bruto"
+            value={formatCurrency(netProfit)}
+            icon={HandCoins}
+            tone="positive"
+          />
+          <StatCard
+            label="ROI em Tempo Real"
+            value={`${roi.toFixed(2)}%`}
+            icon={TrendingUp}
+          />
         </CardContent>
       </Card>
 
-      <Card className="bg-white shadow-sm border-brand-brown/10">
+      <Card>
         <CardHeader>
           <CardTitle className="text-brand-brown">Resumo de Produtos</CardTitle>
-          <CardDescription className="text-brand-brown/70">Estoque, desempenho e alertas de reposição.</CardDescription>
+          <CardDescription>Estoque, desempenho e alertas de reposição.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl bg-brand-bg border border-brand-brown/20 p-4 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-brand-brown/80">Produtos Cadastrados</p>
-                <h3 className="text-2xl font-bold text-brand-brown mt-1">{products.length}</h3>
-                <p className="text-xs text-brand-brown/55 mt-1">{trips.length} viagens registradas</p>
-              </div>
-              <Package className="text-brand-brown/30 h-8 w-8" />
-            </div>
-
-            <div className="rounded-xl bg-brand-bg border border-brand-brown/20 p-4 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-brand-brown/80">Tamanho do Estoque</p>
-                <h3 className="text-2xl font-bold text-brand-brown mt-1">{totalStockUnits} un.</h3>
-                <p className="text-xs text-brand-brown/55 mt-1">unidades disponíveis no total</p>
-              </div>
-              <Package className="text-brand-brown/30 h-8 w-8" />
-            </div>
-
-            <div className="rounded-xl bg-[#e3eedd] border border-emerald-900/10 p-4 shadow-sm flex items-center justify-between">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-emerald-900/80">Produto Mais Vendido</p>
-                <h3 className="text-lg font-bold text-emerald-900 mt-1 truncate">
-                  {bestSellingProduct ? bestSellingProduct.productName : 'Sem vendas ainda'}
-                </h3>
-                {bestSellingProduct && (
-                  <p className="text-xs text-emerald-900/60 mt-1">{bestSellingProduct.salesCount} venda(s) pagas</p>
-                )}
-              </div>
-              <Award className="text-emerald-900/30 h-8 w-8 shrink-0" />
-            </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <StatCard
+              label="Produtos Cadastrados"
+              value={String(products.length)}
+              hint={`${trips.length} viagens registradas`}
+              icon={Package}
+            />
+            <StatCard
+              label="Tamanho do Estoque"
+              value={`${totalStockUnits} un.`}
+              hint="unidades disponíveis no total"
+              icon={Boxes}
+            />
+            <StatCard
+              label="Produto Mais Vendido"
+              value={bestSellingProduct ? bestSellingProduct.productName : 'Sem vendas'}
+              hint={bestSellingProduct ? `${bestSellingProduct.salesCount} venda(s) pagas` : undefined}
+              icon={Award}
+              tone="positive"
+            />
           </div>
 
           {reposicaoProducts.length > 0 && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-950">
+            <div className="rounded-xl border border-amber-200/70 bg-amber-50 p-4 text-amber-950">
               <div className="flex gap-3">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                  <AlertTriangle className="h-4 w-4" />
+                </span>
                 <div className="min-w-0">
                   <p className="text-sm font-bold">Possível momento de reposição</p>
                   <p className="mt-1 text-xs leading-relaxed opacity-80">

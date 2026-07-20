@@ -58,7 +58,7 @@ export function TripManagement({ trips, refetch, exchangeRate }: Props) {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white shadow-sm border-brand-brown/10">
+      <Card>
         <CardHeader>
           <CardTitle className="text-brand-brown">Nova Viagem ao Paraguai</CardTitle>
           <CardDescription className="text-brand-brown/70">Registre os custos de logística para rateio nos produtos.</CardDescription>
@@ -87,7 +87,7 @@ export function TripManagement({ trips, refetch, exchangeRate }: Props) {
         </CardContent>
       </Card>
 
-      <Card className="bg-white shadow-sm border-brand-brown/10">
+      <Card>
         <CardHeader>
           <CardTitle className="text-brand-brown">Histórico de Viagens</CardTitle>
         </CardHeader>
@@ -110,7 +110,7 @@ export function TripManagement({ trips, refetch, exchangeRate }: Props) {
                     <td className="px-4 py-3">{formatCurrency(trip.cotacao_dolar)}</td>
                     <td className="px-4 py-3">{formatCurrency(trip.custo_logistica)}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${trip.status === 'ativa' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${trip.status === 'ativa' ? 'bg-emerald-100 text-emerald-800' : 'bg-brand-sand/70 text-brand-brown/70'}`}>
                         {trip.status === 'ativa' ? 'Ativa' : 'Fechada'}
                       </span>
                     </td>

@@ -222,14 +222,14 @@ export default function ProdutoDetalhe() {
         <Header />
         <div className="pt-[121px] md:pt-[72px]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-            <div className="h-6 w-32 bg-stone-200 animate-pulse rounded-full mb-12"></div>
+            <div className="h-6 w-32 bg-brand-sand/70 animate-pulse rounded-full mb-12"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-              <div className="aspect-[4/5] bg-stone-200 animate-pulse rounded-[2rem]"></div>
+              <div className="aspect-[4/5] bg-brand-sand/70 animate-pulse rounded-2xl"></div>
               <div className="space-y-6 pt-8">
-                <div className="h-4 w-24 bg-stone-200 animate-pulse rounded-full"></div>
-                <div className="h-12 w-3/4 bg-stone-200 animate-pulse rounded-full"></div>
-                <div className="h-10 w-1/3 bg-stone-200 animate-pulse rounded-full mt-8"></div>
-                <div className="h-16 w-full bg-stone-200 animate-pulse rounded-2xl mt-12"></div>
+                <div className="h-4 w-24 bg-brand-sand/70 animate-pulse rounded-full"></div>
+                <div className="h-12 w-3/4 bg-brand-sand/70 animate-pulse rounded-full"></div>
+                <div className="h-10 w-1/3 bg-brand-sand/70 animate-pulse rounded-full mt-8"></div>
+                <div className="h-16 w-full bg-brand-sand/70 animate-pulse rounded-2xl mt-12"></div>
               </div>
             </div>
           </div>
@@ -281,7 +281,7 @@ export default function ProdutoDetalhe() {
           
           {/* LADO ESQUERDO: Imagem do Produto */}
           <div className="md:sticky md:top-28">
-            <div className="aspect-[4/5] bg-[#fcfbf9] rounded-[2.5rem] overflow-hidden flex items-center justify-center p-8 shadow-[0_20px_60px_-15px_rgba(61,43,31,0.05)] border border-brand-brown/5 relative group">
+            <div className="aspect-[4/5] bg-brand-surface rounded-3xl overflow-hidden flex items-center justify-center p-8 shadow-card border border-brand-brown/5 relative group">
               {isLowStock && (
                 <div className="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
                   <span className="text-xs font-bold tracking-widest uppercase text-red-800">
@@ -290,7 +290,7 @@ export default function ProdutoDetalhe() {
                 </div>
               )}
               {outOfStock && (
-                <div className="absolute top-6 right-6 z-10 bg-stone-800/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
+                <div className="absolute top-6 right-6 z-10 bg-brand-deep/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
                   <span className="text-xs font-bold tracking-widest uppercase text-white">
                     Esgotado
                   </span>
@@ -299,7 +299,7 @@ export default function ProdutoDetalhe() {
 
               {product.imagem_url ? (
                 <>
-                  {!imageLoaded && <div className="absolute inset-0 bg-stone-100 animate-pulse" />}
+                  {!imageLoaded && <div className="absolute inset-0 bg-brand-sand/60 animate-pulse" />}
                   <img 
                     src={product.imagem_url} 
                     alt={product.nome} 
@@ -338,8 +338,8 @@ export default function ProdutoDetalhe() {
               </h1>
 
               {product.inspirado_em && (
-                <div className="flex items-center gap-2 mb-6 bg-[#fcfbf9] border border-brand-brown/10 px-4 py-3 rounded-2xl w-max max-w-full shadow-sm">
-                  <Sparkles className="w-4 h-4 text-[#8c6b52] shrink-0" />
+                <div className="flex items-center gap-2 mb-6 bg-brand-surface border border-brand-brown/10 px-4 py-3 rounded-2xl w-max max-w-full shadow-sm">
+                  <Sparkles className="w-4 h-4 text-brand-brown/60 shrink-0" />
                   <p className="text-sm italic text-brand-brown/80 font-medium">
                     Referência Olfativa: Inspirado no consagrado <span className="font-bold text-brand-brown">{product.inspirado_em}</span>
                   </p>
@@ -394,8 +394,8 @@ export default function ProdutoDetalhe() {
                 disabled={outOfStock || reachedStockLimit}
                 className={`w-full py-8 rounded-[1.25rem] text-lg font-bold tracking-wide flex items-center justify-center gap-3 shadow-xl transition-all duration-300 ${
                   outOfStock || reachedStockLimit
-                    ? 'bg-stone-200 text-stone-500 cursor-not-allowed shadow-none hover:bg-stone-200' 
-                    : 'bg-brand-brown hover:bg-[#2A1D15] text-white hover:shadow-2xl hover:-translate-y-1'
+                    ? 'bg-brand-sand text-brand-brown/40 cursor-not-allowed shadow-none hover:bg-brand-sand' 
+                    : 'bg-brand-brown hover:bg-brand-deep text-white hover:shadow-2xl hover:-translate-y-1'
                 }`}
               >
                 <ShoppingBag className="w-6 h-6" /> 
@@ -407,7 +407,7 @@ export default function ProdutoDetalhe() {
                   type="button"
                   onClick={handleCompartilharPerfume}
                   variant="outline"
-                  className="w-full border-brand-brown/15 bg-[#fcfbf9] py-6 text-brand-brown hover:bg-brand-brown/5 sm:w-auto sm:min-w-56"
+                  className="w-full border-brand-brown/15 bg-brand-surface py-6 text-brand-brown hover:bg-brand-brown/5 sm:w-auto sm:min-w-56"
                 >
                   <Share2 className="h-4 w-4" />
                   Compartilhar perfume
@@ -439,11 +439,11 @@ export default function ProdutoDetalhe() {
               {(product.notas_topo || product.notas_coracao || product.notas_fundo) && (
                 <section>
                   <h3 className="uppercase tracking-[0.2em] text-xs font-bold text-brand-brown/40 mb-8">Pirâmide Olfativa</h3>
-                  <div className="flex flex-col gap-8 bg-white border border-brand-brown/5 rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                  <div className="flex flex-col gap-8 bg-white border border-brand-brown/5 rounded-2xl p-8 shadow-card">
                     
                     {product.notas_topo && (
                       <div className="flex items-start gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-[#fcfbf9] border border-brand-brown/5 flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-brand-surface border border-brand-brown/5 flex items-center justify-center shrink-0 shadow-sm">
                           <Wind className="w-5 h-5 text-brand-brown/50" />
                         </div>
                         <div className="pt-1">
@@ -455,7 +455,7 @@ export default function ProdutoDetalhe() {
                     
                     {product.notas_coracao && (
                       <div className="flex items-start gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-[#fcfbf9] border border-brand-brown/5 flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-brand-surface border border-brand-brown/5 flex items-center justify-center shrink-0 shadow-sm">
                           <Heart className="w-5 h-5 text-brand-brown/50" />
                         </div>
                         <div className="pt-1">
@@ -467,7 +467,7 @@ export default function ProdutoDetalhe() {
                     
                     {product.notas_fundo && (
                       <div className="flex items-start gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-[#fcfbf9] border border-brand-brown/5 flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-brand-surface border border-brand-brown/5 flex items-center justify-center shrink-0 shadow-sm">
                           <Droplet className="w-5 h-5 text-brand-brown/50" />
                         </div>
                         <div className="pt-1">
@@ -507,11 +507,11 @@ export default function ProdutoDetalhe() {
                     key={relatedProduct.id}
                     type="button"
                     onClick={() => navigate(getProductPath(relatedProduct))}
-                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-brand-brown/5 bg-white p-1.5 text-left shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(61,43,31,0.08)]"
+                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-brand-brown/5 bg-white p-1.5 text-left shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
                   >
-                    <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-xl bg-[#fcfbf9]">
+                    <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-xl bg-brand-surface">
                       {relatedProduct.mais_vendido && (
-                        <span className="absolute left-2 top-2 z-10 rounded-full bg-emerald-600 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white">
+                        <span className="absolute left-2 top-2 z-10 rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
                           Top
                         </span>
                       )}
@@ -531,7 +531,7 @@ export default function ProdutoDetalhe() {
                       <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.15em] text-brand-brown/40">
                         {relatedProduct.familia_olfativa || relatedProduct.categoria || 'Fragrância'}
                       </p>
-                      <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-brand-brown transition-colors group-hover:text-amber-900">
+                      <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-brand-brown transition-colors group-hover:text-brand-deep">
                         {relatedProduct.nome}
                       </h3>
                       <strong className="mt-2 text-base text-brand-brown">

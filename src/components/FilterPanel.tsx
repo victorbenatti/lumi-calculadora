@@ -1,5 +1,6 @@
 import { DollarSign, Flame, Globe, Package, X } from 'lucide-react';
 import { Button } from './ui/Button';
+import { Select } from './ui/Select';
 
 export type SortOption = 'Mais Vendidos' | 'Menor Preço' | 'Maior Preço';
 
@@ -36,7 +37,7 @@ export function FilterPanel({ filters, onChange, onClear }: FilterPanelProps) {
         <Button
           variant="outline"
           onClick={onClear}
-          className="w-full border-brand-brown/20 text-brand-brown/70 hover:bg-stone-50 text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 rounded-xl h-10"
+          className="w-full border-brand-brown/20 text-brand-brown/70 hover:bg-brand-surface text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 rounded-xl h-10"
         >
           <X className="w-3 h-3" /> Limpar Filtros
         </Button>
@@ -46,15 +47,14 @@ export function FilterPanel({ filters, onChange, onClear }: FilterPanelProps) {
         <h3 className="text-xs font-bold uppercase tracking-wider text-brand-brown/50 flex items-center gap-2">
           <Flame className="w-3.5 h-3.5" /> Ordenar
         </h3>
-        <select
+        <Select
           value={filters.ordenacao}
           onChange={(event) => onChange('ordenacao', event.target.value as SortOption)}
-          className="h-11 w-full rounded-xl border border-brand-brown/10 bg-white px-3 text-sm font-semibold text-brand-brown shadow-sm outline-none transition-colors focus:border-brand-brown/30 focus:ring-2 focus:ring-brand-brown/10"
         >
           {SORT_OPTIONS.map(option => (
             <option key={option} value={option}>{option}</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="h-px bg-brand-brown/5 w-full" />

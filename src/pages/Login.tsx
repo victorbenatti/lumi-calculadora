@@ -93,7 +93,7 @@ export default function Login() {
             <Button 
               type="submit" 
               disabled={loading} 
-              className="w-full bg-brand-brown hover:bg-[#2A1D15] text-brand-bg h-12 rounded-xl text-base font-bold shadow-lg shadow-brand-brown/20 transition-all"
+              className="w-full bg-brand-brown hover:bg-brand-deep text-brand-bg h-12 rounded-xl text-base font-bold shadow-lg shadow-brand-brown/20 transition-all"
             >
               {loading ? 'Validando...' : 'Entrar no Sistema'}
             </Button>

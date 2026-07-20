@@ -110,15 +110,15 @@ export default function Admin() {
             key={item.id}
             type="button"
             onClick={() => handleTabChange(item.id)}
-            className={`w-full rounded-lg border px-3 py-3 text-left transition-all ${
+            className={`w-full rounded-xl border px-3 py-3 text-left transition-all ${
               isActive
-                ? 'border-brand-brown bg-brand-brown text-brand-bg shadow-sm'
-                : 'border-transparent text-brand-brown/78 hover:border-brand-brown/15 hover:bg-brand-bg'
+                ? 'border-brand-brown bg-brand-brown text-brand-bg shadow-lift'
+                : 'border-transparent text-brand-brown/78 hover:border-brand-brown/10 hover:bg-brand-surface'
             }`}
           >
             <div className="flex items-center gap-3">
-              <span className={`flex h-9 w-9 items-center justify-center rounded-md ${
-                isActive ? 'bg-brand-bg/15 text-brand-bg' : 'bg-brand-bg text-brand-brown'
+              <span className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
+                isActive ? 'bg-brand-bg/15 text-brand-bg' : 'bg-brand-sand/60 text-brand-brown'
               }`}>
                 <Icon className="h-4 w-4" />
               </span>
@@ -180,7 +180,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-brand-bg/70 text-brand-brown">
       <div className="flex min-h-screen">
-        <aside className="hidden w-72 shrink-0 border-r border-brand-brown/10 bg-white/90 px-4 py-5 shadow-sm lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen">
+        <aside className="hidden w-72 shrink-0 border-r border-brand-brown/8 bg-white px-4 py-5 lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen">
           <div className="mb-7 flex items-center gap-3 px-2">
             {!iconError ? (
               <img
@@ -318,9 +318,9 @@ export default function Admin() {
           <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
             <div className="hidden items-end justify-between gap-6 lg:flex">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-brown/45">Administração</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-brown/45">Administração</p>
                 <div className="mt-2 flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-brand-brown/10 bg-white text-brand-brown shadow-sm">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-brand-brown/8 bg-white text-brand-brown shadow-card">
                     <ActiveIcon className="h-5 w-5" />
                   </span>
                   <div>

@@ -4,6 +4,7 @@ import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Button } from './ui/Button';
 import { Combobox } from './ui/Combobox';
+import { Select } from './ui/Select';
 import { Pagination } from './Pagination';
 import { Pencil, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -386,7 +387,7 @@ export function SalesTracker({
         </div>
       )}
 
-      <Card className="bg-white shadow-sm border-brand-brown/10">
+      <Card>
         <CardHeader>
           <CardTitle className="text-brand-brown">Registrar Venda</CardTitle>
           <CardDescription className="text-brand-brown/70">Cada venda salva custo, caixa de 10% sobre lucro bruto e split do lucro distribuível.</CardDescription>
@@ -421,14 +422,13 @@ export function SalesTracker({
             </div>
             <div className="space-y-2">
               <Label className="text-brand-brown">Status</Label>
-              <select 
-                value={status} 
+              <Select
+                value={status}
                 onChange={(e) => setStatus(e.target.value as Exclude<SaleStatus, 'cancelada'>)}
-                className="flex h-10 w-full rounded-md border border-brand-brown/20 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown text-brand-brown"
               >
                 <option value="pago">Pago</option>
                 <option value="pendente">Pendente</option>
-              </select>
+              </Select>
             </div>
           </div>
           <Button onClick={handleAddSale} disabled={loading} className="w-full bg-brand-brown hover:bg-brand-brown/90 text-brand-bg transition-colors">
@@ -437,7 +437,7 @@ export function SalesTracker({
         </CardContent>
       </Card>
 
-      <Card className="bg-white shadow-sm border-brand-brown/10">
+      <Card>
         <CardHeader>
           <CardTitle className="text-brand-brown">Histórico de Vendas</CardTitle>
         </CardHeader>
@@ -459,15 +459,15 @@ export function SalesTracker({
                 </button>
               ))}
             </div>
-            <select
+            <Select
               value={historySort}
               onChange={(e) => setHistorySort(e.target.value as typeof historySort)}
-              className="h-9 rounded-md border border-brand-brown/20 bg-white px-3 text-sm text-brand-brown focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-brown"
+              className="sm:w-44"
             >
               <option value="recentes">Mais recentes</option>
               <option value="maior-valor">Maior valor</option>
               <option value="menor-valor">Menor valor</option>
-            </select>
+            </Select>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
