@@ -156,7 +156,7 @@ export default function Campanha({ slug }: { slug: string }) {
         )}
 
         <section className="relative overflow-hidden border-b border-[var(--c-border)]/70 bg-[var(--c-bgSoft)]">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--c-bgSoft)_0%,#ffffff_48%,#f8e2e7_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--c-bgSoft)_0%,#ffffff_48%,var(--c-bgSoft)_100%)]" />
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--c-accent)] to-transparent" />
 
           <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:py-14 lg:grid-cols-[1fr_0.9fr] lg:px-8">
@@ -235,7 +235,7 @@ export default function Campanha({ slug }: { slug: string }) {
                           : `Até ${bestDiscount}% off`}
                       </p>
                       <p className="text-sm font-medium leading-6 text-brand-brown/60">
-                        Em produtos selecionados da curadoria feminina Lumi.
+                        Em produtos selecionados da curadoria Lumi.
                       </p>
                     </div>
                   </div>
@@ -309,7 +309,7 @@ export default function Campanha({ slug }: { slug: string }) {
                   Seleção {config.gaCategory}
                 </h2>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-brand-brown/50">
-                  Fragrâncias femininas com preço promocional destacado para escolher sem pressa e finalizar pelo WhatsApp.
+                  Fragrâncias com preço promocional destacado para escolher sem pressa e finalizar pelo WhatsApp.
                 </p>
               </div>
 
@@ -364,7 +364,7 @@ export default function Campanha({ slug }: { slug: string }) {
                 </div>
                 <h3 className="text-2xl font-light text-brand-brown">Ofertas em preparação</h3>
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-brand-brown/50">
-                  Assim que os produtos femininos estiverem com promoção ativa, eles aparecem automaticamente nesta página.
+                  Assim que os produtos estiverem com promoção ativa, eles aparecem automaticamente nesta página.
                 </p>
                 <Button
                   type="button"
