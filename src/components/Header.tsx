@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Filter, Package, Search, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,7 @@ import { WHATSAPP_NUMBER, formatBRL, getProductSalePrice, useCart } from '../con
 import { useDebounce } from '../hooks/useDebounce';
 import type { Database } from '../types/supabase';
 import { getProductPath } from '../utils/productRoutes';
+import { getActiveCampaigns } from '../campaigns';
 
 const WHATSAPP_CONTACT_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Quero%20conhecer%20as%20fragr%C3%A2ncias%20da%20Lumi%20Imports.`;
@@ -272,6 +273,29 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
         {desktopSearchInput}
 
         <div className="ml-auto flex items-center gap-2">
+          {getActiveCampaigns().map((c) => {
+            const Icon = c.headerButton.icon;
+            return (
+              <Button
+                key={c.slug}
+                type="button"
+                onClick={() => navigate(`/${c.slug}`)}
+                variant="outline"
+                className="hidden h-10 rounded-full border-[var(--c-border)] bg-[var(--c-bgSoft)] px-3 text-[var(--c-accent)] hover:brightness-95 md:flex"
+                style={{
+                  '--c-border': c.palette.border,
+                  '--c-bgSoft': c.palette.bgSoft,
+                  '--c-accent': c.palette.accent,
+                } as CSSProperties}
+                aria-label={`Especial ${c.headerButton.label}`}
+                title={`Especial ${c.headerButton.label}`}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="text-xs font-bold">{c.headerButton.label}</span>
+              </Button>
+            );
+          })}
+
           <Button
             type="button"
             onClick={openWhatsApp}
