@@ -5,12 +5,14 @@ import { Analytics } from './components/Analytics';
 import { CartDrawer } from './components/CartDrawer';
 import { Footer } from './components/Footer';
 import { CartProvider } from './contexts/CartContext';
+import { getAllCampaigns } from './campaigns';
 
 // Code Splitting - Carregamento preguiçoso das páginas
 const Admin = lazy(() => import('./pages/Admin'));
 const Catalogo = lazy(() => import('./pages/Catalogo'));
 const Login = lazy(() => import('./pages/Login'));
 const ProdutoDetalhe = lazy(() => import('./pages/ProdutoDetalhe'));
+const Campanha = lazy(() => import('./pages/Campanha'));
 
 // Componente de fallback para carregamento
 const PageLoader = () => (
@@ -53,7 +55,13 @@ function App() {
             } 
           />
           <Route path="/catalogo" element={<Catalogo />} />
-          <Route path="/dia-das-maes" element={<Navigate to="/catalogo" replace />} />
+          {getAllCampaigns().map((c) =>
+            c.ativa ? (
+              <Route key={c.slug} path={`/${c.slug}`} element={<Campanha slug={c.slug} />} />
+            ) : (
+              <Route key={c.slug} path={`/${c.slug}`} element={<Navigate to="/catalogo" replace />} />
+            )
+          )}
           <Route path="/produto/:slugOrId" element={<ProdutoDetalhe />} />
         </Routes>
       </Suspense>
