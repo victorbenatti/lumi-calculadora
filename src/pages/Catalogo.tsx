@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import {
   ArrowRight,
+  BadgePercent,
   Filter,
   Flame,
   Gem,
@@ -27,6 +28,7 @@ import {
 } from '../components/FilterPanel';
 import { Pagination } from '../components/Pagination';
 import { useDebounce } from '../hooks/useDebounce';
+import { getActiveCampaigns } from '../campaigns';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -61,6 +63,17 @@ type HeroSlide = {
   clickable: boolean;
 };
 
+const campaignSlides: HeroSlide[] = getActiveCampaigns()
+  .filter((c) => c.banner)
+  .map((c) => ({
+    id: c.slug,
+    desktopImage: c.banner!.desktop.replace(/^\//, ''),
+    mobileImage: c.banner!.mobile.replace(/^\//, ''),
+    alt: c.banner!.alt,
+    href: `/${c.slug}`,
+    clickable: true,
+  }));
+
 const heroSlides: HeroSlide[] = [
   {
     id: 'perfumes-arabes',
@@ -70,6 +83,7 @@ const heroSlides: HeroSlide[] = [
     href: '#catalogo',
     clickable: true,
   },
+  ...campaignSlides,
   {
     id: 'brand-collection',
     desktopImage: 'banner-brand-collection.webp',
@@ -482,6 +496,44 @@ export default function Catalogo() {
             </div>
           </div>
         </section>
+
+        {getActiveCampaigns().map((c) => (
+          <section key={c.slug} className="bg-brand-bg px-4 pt-4 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={() => navigate(`/${c.slug}`)}
+              className="group mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-2xl border border-[var(--c-border)] bg-white px-4 py-4 text-left shadow-[0_10px_30px_rgba(60,43,31,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(60,43,31,0.12)] focus:outline-none sm:flex-row sm:items-center sm:justify-between sm:px-5"
+              style={{
+                '--c-border': c.palette.border,
+                '--c-bgSoft': c.palette.bgSoft,
+                '--c-accent': c.palette.accent,
+                '--c-accentDeep': c.palette.accentDeep,
+              } as CSSProperties}
+              aria-label={`Ver promoção de ${c.headerButton.label} da Lumi Imports`}
+            >
+              <div className="flex items-start gap-3 sm:items-center">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--c-bgSoft)] text-[var(--c-accent)] ring-1 ring-[var(--c-border)]">
+                  <BadgePercent className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--c-accent)]">
+                    Especial {c.headerButton.label}
+                  </p>
+                  <h2 className="mt-1 text-base font-bold leading-snug text-brand-brown sm:text-lg">
+                    Perfumes selecionados com ofertas especiais
+                  </h2>
+                  <p className="mt-1 text-xs leading-5 text-brand-brown/55 sm:text-sm">
+                    Encontre presentes elegantes com curadoria Lumi e finalize pelo WhatsApp.
+                  </p>
+                </div>
+              </div>
+              <span className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--c-accent)] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white transition-colors group-hover:bg-[var(--c-accentDeep)] sm:w-auto sm:shrink-0">
+                Ver ofertas
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </button>
+          </section>
+        ))}
 
         <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 lg:gap-12">
 
