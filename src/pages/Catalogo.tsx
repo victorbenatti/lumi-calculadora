@@ -29,6 +29,12 @@ import {
 import { Pagination } from '../components/Pagination';
 import { useDebounce } from '../hooks/useDebounce';
 import { getActiveCampaigns } from '../campaigns';
+import {
+  clearPendingCatalogNavigation,
+  getPendingCatalogNavigation,
+  saveCatalogNavigation,
+} from '../utils/catalogNavigation';
+import { getProductPath } from '../utils/productRoutes';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
@@ -97,10 +103,12 @@ const heroSlides: HeroSlide[] = [
 function PocketPerfumesSection({
   products,
   onAddToCart,
+  onOpenProduct,
   onViewCollection,
 }: {
   products: Product[];
   onAddToCart: (product: Product) => void;
+  onOpenProduct: (product: Product) => void;
   onViewCollection: () => void;
 }) {
   if (products.length === 0) return null;
@@ -158,6 +166,7 @@ function PocketPerfumesSection({
             key={`pocket-${product.id}`}
             product={product}
             onAddToCart={onAddToCart}
+            onOpenProduct={onOpenProduct}
           />
         ))}
       </div>
@@ -232,22 +241,28 @@ function TrustTopBar() {
 }
 
 export default function Catalogo() {
+  const initialNavigationRef = useRef(getPendingCatalogNavigation());
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(
+    () => initialNavigationRef.current?.page ?? 1
+  );
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
   const catalogSectionRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const { addItem } = useCart();
 
-  const [filters, setFilters] = useState<CatalogFilters>({
-    search: '',
-    categoria: 'Todos',
-    tipo: 'Todos',
-    precoFaixa: 'Todos',
-    ordenacao: 'Mais Vendidos',
-  });
+  const [filters, setFilters] = useState<CatalogFilters>(
+    () => initialNavigationRef.current?.filters ?? {
+      search: '',
+      categoria: 'Todos',
+      tipo: 'Todos',
+      precoFaixa: 'Todos',
+      ordenacao: 'Mais Vendidos',
+    }
+  );
+  const previousFiltersRef = useRef(filters);
 
   const debouncedSearch = useDebounce(filters.search, SEARCH_DEBOUNCE_MS);
 
@@ -299,6 +314,15 @@ export default function Catalogo() {
       ReactGA.event({ category: 'Carrinho', action: 'Adicionar Produto', label: product.nome });
     }
   }, [addItem]);
+
+  const handleOpenProduct = useCallback((product: Product) => {
+    saveCatalogNavigation({
+      filters,
+      page: currentPage,
+      scrollY: window.scrollY,
+    });
+    navigate(getProductPath(product));
+  }, [currentPage, filters, navigate]);
 
   const pocketCollectionProducts = useMemo(() => {
     return products
@@ -378,14 +402,43 @@ export default function Catalogo() {
   }, [currentPage, totalPages]);
 
   useEffect(() => {
-    setCurrentPage(1);
+    if (previousFiltersRef.current !== filters) {
+      setCurrentPage(1);
+      previousFiltersRef.current = filters;
+    }
   }, [filters]);
 
   useEffect(() => {
-    if (currentPage > totalPages) {
+    const snapshot = initialNavigationRef.current;
+    if (loading || !snapshot) return;
+
+    let animationFrameId = 0;
+    let attempts = 0;
+
+    const restoreScroll = () => {
+      window.scrollTo({ top: snapshot.scrollY, left: 0, behavior: 'auto' });
+      attempts += 1;
+
+      const reachedSavedPosition = Math.abs(window.scrollY - snapshot.scrollY) <= 2;
+      if (!reachedSavedPosition && attempts < 8) {
+        animationFrameId = window.requestAnimationFrame(restoreScroll);
+        return;
+      }
+
+      clearPendingCatalogNavigation();
+      initialNavigationRef.current = null;
+    };
+
+    animationFrameId = window.requestAnimationFrame(restoreScroll);
+
+    return () => window.cancelAnimationFrame(animationFrameId);
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading && currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
-  }, [currentPage, totalPages]);
+  }, [currentPage, loading, totalPages]);
 
   const clearFilters = () => setFilters({ ...filters, categoria: 'Todos', tipo: 'Todos', precoFaixa: 'Todos' });
 
@@ -625,6 +678,7 @@ export default function Catalogo() {
               <PocketPerfumesSection
                 products={pocketCollectionProducts}
                 onAddToCart={handleAddToCart}
+                onOpenProduct={handleOpenProduct}
                 onViewCollection={showPocketCollection}
               />
 
@@ -643,7 +697,11 @@ export default function Catalogo() {
                   <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 gap-3 sm:gap-4 snap-x snap-mandatory scrollbar-hide">
                     {favoriteProducts.map(product => (
                       <div key={`fav-${product.id}`} className="min-w-[160px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
-                        <ProductCard product={product} onAddToCart={handleAddToCart} />
+                        <ProductCard
+                          product={product}
+                          onAddToCart={handleAddToCart}
+                          onOpenProduct={handleOpenProduct}
+                        />
                       </div>
                     ))}
                   </div>
@@ -692,7 +750,12 @@ export default function Catalogo() {
                 )}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                   {paginatedProducts.map((product) => (
-                    <ProductCard key={`all-${product.id}`} product={product} onAddToCart={handleAddToCart} />
+                    <ProductCard
+                      key={`all-${product.id}`}
+                      product={product}
+                      onAddToCart={handleAddToCart}
+                      onOpenProduct={handleOpenProduct}
+                    />
                   ))}
                 </div>
 

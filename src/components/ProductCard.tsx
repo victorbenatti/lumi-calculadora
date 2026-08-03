@@ -31,9 +31,10 @@ type Product = Database['public']['Tables']['produtos']['Row'];
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
+  onOpenProduct?: (product: Product) => void;
 }
 
-function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
+function ProductCardComponent({ product, onAddToCart, onOpenProduct }: ProductCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const navigate = useNavigate();
@@ -50,6 +51,15 @@ function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
 
   const hasAI = !!product.notas_topo || !!product.descricao_ia || !!product.familia_olfativa;
 
+  const handleOpenProduct = () => {
+    if (onOpenProduct) {
+      onOpenProduct(product);
+      return;
+    }
+
+    navigate(getProductPath(product));
+  };
+
   const handleProductAction = () => {
     if (outOfStock) {
       window.open(buildProductOrderWhatsAppUrl(product), '_blank');
@@ -64,7 +74,7 @@ function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
     <Card className="border border-brand-brown/8 bg-white shadow-card hover:shadow-lift hover:-translate-y-0.5 transition-all duration-300 flex flex-col h-full rounded-2xl group overflow-hidden">
       <div
         className="p-1.5 cursor-pointer"
-        onClick={() => navigate(getProductPath(product))}
+        onClick={handleOpenProduct}
       >
         <div className="aspect-[3/4] w-full bg-brand-surface rounded-xl overflow-hidden relative flex items-center justify-center">
           {outOfStock ? (
@@ -113,7 +123,7 @@ function ProductCardComponent({ product, onAddToCart }: ProductCardProps) {
       <CardContent className="px-3 pb-3 pt-2 flex flex-col flex-grow">
         <div
           className="flex-grow cursor-pointer"
-          onClick={() => navigate(getProductPath(product))}
+          onClick={handleOpenProduct}
         >
           <div className="flex items-center gap-1.5 mb-1">
             <p className="text-[10px] uppercase tracking-[0.14em] text-brand-brown/45 font-semibold">

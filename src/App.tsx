@@ -1,11 +1,12 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Analytics } from './components/Analytics';
 import { CartDrawer } from './components/CartDrawer';
 import { Footer } from './components/Footer';
 import { CartProvider } from './contexts/CartContext';
 import { getAllCampaigns } from './campaigns';
+import { getPendingCatalogNavigation } from './utils/catalogNavigation';
 
 // Code Splitting - Carregamento preguiçoso das páginas
 const Admin = lazy(() => import('./pages/Admin'));
@@ -24,10 +25,16 @@ const PageLoader = () => (
 
 function ScrollToTop() {
   const { pathname } = useLocation();
+  const navigationType = useNavigationType();
 
   useEffect(() => {
+    const isReturningToCatalog =
+      pathname === '/catalogo' && Boolean(getPendingCatalogNavigation());
+
+    if (navigationType === 'POP' || isReturningToCatalog) return;
+
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [pathname]);
+  }, [navigationType, pathname]);
 
   return null;
 }

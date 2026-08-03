@@ -13,6 +13,37 @@ import { getProductPath, isProductIdParam } from '../utils/productRoutes';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
 
+const imageExtensionByMimeType: Record<string, string> = {
+  'image/avif': 'avif',
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+const buildProductImageFile = async (product: Product) => {
+  if (!product.imagem_url) return null;
+
+  const response = await fetch(product.imagem_url);
+  if (!response.ok) throw new Error('Não foi possível baixar a foto do produto.');
+
+  const imageBlob = await response.blob();
+  if (!imageBlob.type.startsWith('image/')) {
+    throw new Error('O arquivo do produto não é uma imagem válida.');
+  }
+
+  const safeProductName = product.nome
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/gi, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase() || 'perfume-lumi';
+  const extension = imageExtensionByMimeType[imageBlob.type] || 'jpg';
+
+  return new File([imageBlob], `${safeProductName}.${extension}`, {
+    type: imageBlob.type,
+  });
+};
+
 const productFaqItems: FaqItem[] = [
   {
     question: 'Esse perfume é original?',
@@ -193,11 +224,34 @@ export default function ProdutoDetalhe() {
 
     try {
       if (navigator.share) {
-        await navigator.share({
+        const linkShareData: ShareData = {
           title: `${product.nome} | Lumi Imports`,
           text: shareText,
           url: perfumeUrl,
-        });
+        };
+
+        if (product.imagem_url && navigator.canShare) {
+          try {
+            const imageFile = await buildProductImageFile(product);
+            const imageShareData: ShareData = {
+              title: linkShareData.title,
+              text: `${shareText}\n\n${perfumeUrl}`,
+              files: imageFile ? [imageFile] : undefined,
+            };
+
+            if (imageFile && navigator.canShare({ files: [imageFile] })) {
+              await navigator.share(imageShareData);
+              return;
+            }
+          } catch (imageError) {
+            if (imageError instanceof DOMException && imageError.name === 'AbortError') {
+              throw imageError;
+            }
+            console.warn('Compartilhamento com foto indisponível; enviando somente o link.', imageError);
+          }
+        }
+
+        await navigator.share(linkShareData);
         return;
       }
 
@@ -212,6 +266,7 @@ export default function ProdutoDetalhe() {
         setShareFeedbackVisible(false);
       }, 2400);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       console.error('Erro ao compartilhar perfume:', err);
     }
   };
