@@ -216,11 +216,18 @@ export default function ProdutoDetalhe() {
     if (!product || typeof window === 'undefined') return;
 
     const perfumeUrl = `${window.location.origin}${getProductPath(product)}`;
-    const shareText =
-      product.descricao_ia ||
-      (product.inspirado_em
-        ? `Conheça esta fragrância da Lumi Imports inspirada em ${product.inspirado_em}.`
-        : 'Conheça esta fragrância selecionada da Lumi Imports.');
+    const productDetails = [product.categoria, product.volume].filter(Boolean).join(' • ');
+    const salePrice = getProductSalePrice(product);
+    const priceText = hasActivePromotion(product)
+      ? `Oferta: ${formatBRL(salePrice)} (de ${formatBRL(getProductRegularPrice(product))})`
+      : `Preço: ${formatBRL(salePrice)}`;
+    const shareText = [
+      product.nome,
+      productDetails,
+      priceText,
+      'Disponível na Lumi Imports',
+    ].filter(Boolean).join('\n');
+    const completeShareText = `${shareText}\n\n${perfumeUrl}`;
 
     try {
       if (navigator.share) {
@@ -235,7 +242,7 @@ export default function ProdutoDetalhe() {
             const imageFile = await buildProductImageFile(product);
             const imageShareData: ShareData = {
               title: linkShareData.title,
-              text: `${shareText}\n\n${perfumeUrl}`,
+              text: completeShareText,
               files: imageFile ? [imageFile] : undefined,
             };
 
@@ -255,7 +262,7 @@ export default function ProdutoDetalhe() {
         return;
       }
 
-      await navigator.clipboard.writeText(perfumeUrl);
+      await navigator.clipboard.writeText(completeShareText);
       setShareFeedbackVisible(true);
 
       if (shareFeedbackTimeoutRef.current) {
@@ -471,7 +478,7 @@ export default function ProdutoDetalhe() {
                 {shareFeedbackVisible && (
                   <div className="flex items-center justify-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 sm:justify-start">
                     <Check className="h-4 w-4" />
-                    Link copiado!
+                    Mensagem copiada!
                   </div>
                 )}
               </div>
