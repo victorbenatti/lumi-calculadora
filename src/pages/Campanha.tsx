@@ -18,12 +18,14 @@ import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Header } from '../components/Header';
 import { FaqSection } from '../components/FaqSection';
-import {
-  CampaignProductCard,
-  discountPercentage,
-} from '../components/Campaign/CampaignProductCard';
+import { CampaignProductCard } from '../components/Campaign/CampaignProductCard';
 import type { Database } from '../types/supabase';
-import { WHATSAPP_NUMBER, hasActivePromotion, useCart } from '../contexts/cart';
+import {
+  WHATSAPP_NUMBER,
+  getProductDiscountPercentage,
+  hasActivePromotion,
+  useCart,
+} from '../contexts/cart';
 import { getCampaign } from '../campaigns';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
@@ -83,7 +85,7 @@ export default function Campanha({ slug }: { slug: string }) {
   }, [config]);
 
   const bestDiscount = useMemo(
-    () => products.reduce((best, product) => Math.max(best, discountPercentage(product)), 0),
+    () => products.reduce((best, product) => Math.max(best, getProductDiscountPercentage(product)), 0),
     [products]
   );
 

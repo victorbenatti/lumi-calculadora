@@ -7,6 +7,7 @@ import type { Database } from '../../types/supabase';
 import { calculateInstallment } from '../../utils/finance';
 import {
   formatBRL,
+  getProductDiscountPercentage,
   getProductRegularPrice,
   getProductSalePrice,
   useCart,
@@ -14,15 +15,6 @@ import {
 import { getProductPath } from '../../utils/productRoutes';
 
 type Product = Database['public']['Tables']['produtos']['Row'];
-
-export const discountPercentage = (product: Product) => {
-  const regularPrice = getProductRegularPrice(product);
-  const salePrice = getProductSalePrice(product);
-
-  if (regularPrice <= 0 || salePrice >= regularPrice) return 0;
-
-  return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
-};
 
 export function CampaignProductCard({
   product,
@@ -40,7 +32,7 @@ export function CampaignProductCard({
   const regularPrice = getProductRegularPrice(product);
   const salePrice = getProductSalePrice(product);
   const installmentValue = calculateInstallment(salePrice);
-  const discount = discountPercentage(product);
+  const discount = getProductDiscountPercentage(product);
   const cartQuantity = getItemQuantity(product.id);
   const reachedStockLimit = cartQuantity >= product.estoque;
   const isLowStock = product.estoque <= 2;

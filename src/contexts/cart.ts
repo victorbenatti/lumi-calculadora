@@ -61,6 +61,15 @@ export const getProductSalePrice = (product: Product) => {
     : getProductRegularPrice(product);
 };
 
+export const getProductDiscountPercentage = (product: Product) => {
+  const regularPrice = getProductRegularPrice(product);
+  const salePrice = getProductSalePrice(product);
+
+  if (regularPrice <= 0 || salePrice >= regularPrice) return 0;
+
+  return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
+};
+
 export const buildProductOrderWhatsAppUrl = (product: Product) => {
   const text = encodeURIComponent(
     `Olá! Tenho interesse em encomendar o perfume ${product.nome}. Poderiam me informar disponibilidade e prazo?`

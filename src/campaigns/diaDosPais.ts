@@ -3,7 +3,7 @@ import type { CampaignConfig } from './types';
 
 export const diaDosPais: CampaignConfig = {
   slug: 'dia-dos-pais',
-  ativa: true,
+  ativa: false, // campanha encerrada; permanece como redirect
   categorias: ['Masculino', 'Unissex'],
   palette: {
     accent: '#78350f',     // âmbar/tabaco escuro
