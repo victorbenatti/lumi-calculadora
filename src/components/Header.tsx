@@ -37,7 +37,6 @@ function WhatsAppLogoIcon({ className }: { className?: string }) {
 
 export function Header({ searchValue, onSearchChange, onOpenCategories }: HeaderProps) {
   const navigate = useNavigate();
-  const [showFilterHint, setShowFilterHint] = useState(true);
   const [internalSearch, setInternalSearch] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
@@ -47,16 +46,6 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
   const hasFilterButton = Boolean(onOpenCategories);
   const currentSearchValue = searchValue ?? internalSearch;
   const debouncedSearch = useDebounce(currentSearchValue.trim(), 180);
-
-  useEffect(() => {
-    if (!hasFilterButton) return;
-
-    const timeout = window.setTimeout(() => {
-      setShowFilterHint(false);
-    }, 3000);
-
-    return () => window.clearTimeout(timeout);
-  }, [hasFilterButton]);
 
   useEffect(() => {
     if (debouncedSearch.length < 2) {
@@ -111,7 +100,6 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
   };
 
   const openMobileFilters = () => {
-    setShowFilterHint(false);
     onOpenCategories?.();
   };
 
@@ -233,30 +221,13 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
             onClick={openMobileFilters}
             variant="outline"
             size="icon-lg"
-            className="md:hidden rounded-full border-brand-brown bg-brand-brown text-white shadow-lift hover:bg-brand-deep"
+            className="md:hidden rounded-full border-brand-brown bg-brand-brown text-white shadow-lift hover:bg-brand-deep cursor-pointer"
             aria-label="Abrir filtros"
             title="Filtros"
           >
             <Filter className="h-5 w-5" />
           </Button>
         )}
-
-        <AnimatePresence>
-          {hasFilterButton && showFilterHint && (
-            <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.96 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="pointer-events-none absolute left-3 top-[58px] z-10 md:hidden"
-            >
-              <div className="relative rounded-xl bg-brand-brown px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-lift">
-                Filtre sua busca
-                <span className="absolute -top-1 left-6 h-3 w-3 rotate-45 bg-brand-brown" />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <a
           href="/catalogo"
@@ -266,7 +237,7 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
           <img
             src="/logo-lumi-importadora.svg"
             alt="Lumi Imports"
-            className="h-22 w-auto object-contain drop-shadow-sm md:h-22"
+            className="h-10 sm:h-12 md:h-12 w-auto object-contain drop-shadow-sm"
           />
         </a>
 
