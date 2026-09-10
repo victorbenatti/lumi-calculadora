@@ -7,6 +7,7 @@ import {
   Package,
   Plane,
   RefreshCcw,
+  ShoppingBag,
   ShoppingCart,
   Store,
   X,
@@ -17,6 +18,7 @@ import { DashboardOverview } from "../components/DashboardOverview";
 import { ExchangeRateCard } from "../components/ExchangeRateCard";
 import { FinancialDashboard } from "../components/FinancialDashboard";
 import { Inventory } from "../components/Inventory";
+import { OrdersManagement } from "../components/OrdersManagement";
 import { SalesTracker } from "../components/SalesTracker";
 import { TripManagement } from "../components/TripManagement";
 import { Button } from "../components/ui/Button";
@@ -25,7 +27,7 @@ import { useExchangeRate } from "../hooks/useExchangeRate";
 import { supabase } from "../lib/supabase";
 import { getActiveFinancialConfig } from "../utils/finance";
 
-type Tab = 'dashboard' | 'inventory' | 'trips' | 'sales' | 'finance';
+type Tab = 'dashboard' | 'orders' | 'inventory' | 'trips' | 'sales' | 'finance';
 
 const tabItems = [
   {
@@ -33,6 +35,12 @@ const tabItems = [
     label: 'Visão Geral',
     description: 'Indicadores e saúde do negócio',
     icon: LayoutDashboard,
+  },
+  {
+    id: 'orders',
+    label: 'Pedidos',
+    description: 'Acompanhamento do checkout web',
+    icon: ShoppingBag,
   },
   {
     id: 'trips',
@@ -154,6 +162,7 @@ export default function Admin() {
           <DashboardOverview sales={sales} products={products} trips={trips} financialConfig={activeFinancialConfig} />
         </div>
       )}
+      {activeTab === 'orders' && <OrdersManagement />}
       {activeTab === 'trips' && <TripManagement trips={trips} refetch={refetchERP} exchangeRate={rate} />}
       {activeTab === 'inventory' && <Inventory trips={trips} products={products} refetch={refetchERP} />}
       {activeTab === 'sales' && (

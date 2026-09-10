@@ -13,19 +13,23 @@ const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
 
 export function InstallPwaPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
+  const [isIOS] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(userAgent);
+  });
+  const [isStandalone] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true
+    );
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [showIOSModal, setShowIOSModal] = useState(false);
 
   useEffect(() => {
-    // 1. Verifica se já está rodando como app instalado (Standalone)
-    const isStandaloneMode =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-
-    if (isStandaloneMode) {
-      setIsStandalone(true);
+    if (isStandalone) {
       return;
     }
 
@@ -38,11 +42,6 @@ export function InstallPwaPrompt() {
       }
     }
 
-    // 3. Detecta iOS / iPadOS
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(isIosDevice);
-
     // 4. Captura evento no Android / Chromium
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -53,7 +52,7 @@ export function InstallPwaPrompt() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     // No iOS, se não for standalone e não foi dispensado, exibe após alguns segundos
-    if (isIosDevice) {
+    if (isIOS) {
       const timer = window.setTimeout(() => {
         setIsOpen(true);
       }, 4000);
@@ -66,7 +65,7 @@ export function InstallPwaPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+  }, [isStandalone, isIOS]);
 
   const handleDismiss = () => {
     setIsOpen(false);

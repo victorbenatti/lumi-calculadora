@@ -853,7 +853,7 @@ export default function Catalogo() {
                       <button
                         key={chip.key}
                         type="button"
-                        onClick={() => setFilterValue(chip.key, chip.resetValue as any)}
+                        onClick={() => setFilters(prev => ({ ...prev, [chip.key]: chip.resetValue }))}
                         className="group/chip flex items-center gap-1.5 rounded-full border border-brand-brown/15 bg-white px-3 py-1.5 text-xs font-semibold text-brand-brown shadow-card transition-colors hover:border-brand-brown/30 hover:bg-brand-surface cursor-pointer"
                       >
                         {chip.label}

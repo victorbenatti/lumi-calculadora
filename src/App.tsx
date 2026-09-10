@@ -15,6 +15,7 @@ const Catalogo = lazy(() => import('./pages/Catalogo'));
 const Login = lazy(() => import('./pages/Login'));
 const ProdutoDetalhe = lazy(() => import('./pages/ProdutoDetalhe'));
 const Campanha = lazy(() => import('./pages/Campanha'));
+const Checkout = lazy(() => import('./pages/Checkout'));
 
 // Componente de fallback para carregamento
 const PageLoader = () => (
@@ -43,9 +44,10 @@ function ScrollToTop() {
 function App() {
   const location = useLocation();
   const isAdminArea = location.pathname.startsWith('/admin') || location.pathname === '/login';
-  const showFooter = !isAdminArea;
-  const showCart = !isAdminArea;
-  const showPwaPrompt = !isAdminArea;
+  const isCheckoutArea = location.pathname === '/checkout';
+  const showFooter = !isAdminArea && !isCheckoutArea;
+  const showCart = !isAdminArea && !isCheckoutArea;
+  const showPwaPrompt = !isAdminArea && !isCheckoutArea;
 
   return (
     <CartProvider>
@@ -64,6 +66,7 @@ function App() {
             } 
             />
           <Route path="/catalogo" element={<Catalogo />} />
+          <Route path="/checkout" element={<Checkout />} />
           {getAllCampaigns().map((c) =>
             c.ativa ? (
               <Route key={c.slug} path={`/${c.slug}`} element={<Campanha slug={c.slug} />} />

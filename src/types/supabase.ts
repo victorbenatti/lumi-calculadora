@@ -292,6 +292,126 @@ export interface Database {
         }
         Relationships: []
       }
+      pedidos: {
+        Row: {
+          id: string
+          codigo: string
+          created_at: string
+          cliente_nome: string
+          cliente_whatsapp: string
+          tipo_entrega: 'envio' | 'retirada'
+          cep: string | null
+          logradouro: string | null
+          numero: string | null
+          complemento: string | null
+          bairro: string | null
+          cidade: string | null
+          estado: string | null
+          forma_pagamento: 'pix' | 'cartao'
+          subtotal: number
+          desconto: number
+          total: number
+          status: 'aguardando_confirmacao' | 'pago' | 'enviado' | 'cancelado'
+          observacoes: string | null
+          origem: string
+        }
+        Insert: {
+          id?: string
+          codigo?: string
+          created_at?: string
+          cliente_nome: string
+          cliente_whatsapp: string
+          tipo_entrega: 'envio' | 'retirada'
+          cep?: string | null
+          logradouro?: string | null
+          numero?: string | null
+          complemento?: string | null
+          bairro?: string | null
+          cidade?: string | null
+          estado?: string | null
+          forma_pagamento: 'pix' | 'cartao'
+          subtotal: number
+          desconto?: number
+          total: number
+          status?: 'aguardando_confirmacao' | 'pago' | 'enviado' | 'cancelado'
+          observacoes?: string | null
+          origem?: string
+        }
+        Update: {
+          id?: string
+          codigo?: string
+          created_at?: string
+          cliente_nome?: string
+          cliente_whatsapp?: string
+          tipo_entrega?: 'envio' | 'retirada'
+          cep?: string | null
+          logradouro?: string | null
+          numero?: string | null
+          complemento?: string | null
+          bairro?: string | null
+          cidade?: string | null
+          estado?: string | null
+          forma_pagamento?: 'pix' | 'cartao'
+          subtotal?: number
+          desconto?: number
+          total?: number
+          status?: 'aguardando_confirmacao' | 'pago' | 'enviado' | 'cancelado'
+          observacoes?: string | null
+          origem?: string
+        }
+        Relationships: []
+      }
+      itens_pedido: {
+        Row: {
+          id: string
+          pedido_id: string
+          produto_id: string | null
+          nome_produto: string
+          quantidade: number
+          preco_unitario: number
+          preco_total: number
+          imagem_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          pedido_id: string
+          produto_id?: string | null
+          nome_produto: string
+          quantidade: number
+          preco_unitario: number
+          preco_total: number
+          imagem_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          pedido_id?: string
+          produto_id?: string | null
+          nome_produto?: string
+          quantidade?: number
+          preco_unitario?: number
+          preco_total?: number
+          imagem_url?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_pedido_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_pedido_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,9 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Minus, Package, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
+import { ArrowRight, Minus, Package, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { useCart, formatBRL } from '../contexts/cart';
 
 export function CartDrawer() {
+  const navigate = useNavigate();
   const {
     items,
     totalItems,
@@ -15,8 +17,12 @@ export function CartDrawer() {
     decreaseItem,
     removeItem,
     clearCart,
-    checkoutWhatsApp,
   } = useCart();
+
+  const handleGoToCheckout = () => {
+    closeCart();
+    navigate('/checkout');
+  };
 
   return (
     <>
@@ -189,11 +195,12 @@ export function CartDrawer() {
                 </div>
 
                 <Button
-                  onClick={checkoutWhatsApp}
+                  onClick={handleGoToCheckout}
                   disabled={items.length === 0}
-                  className="h-14 w-full rounded-2xl bg-brand-brown text-base font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-brand-deep hover:shadow-xl disabled:translate-y-0 disabled:bg-brand-sand disabled:text-brand-brown/40 disabled:shadow-none"
+                  className="h-14 w-full rounded-2xl bg-brand-brown text-base font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-brand-deep hover:shadow-xl disabled:translate-y-0 disabled:bg-brand-sand disabled:text-brand-brown/40 disabled:shadow-none flex items-center justify-center gap-2"
                 >
-                  Finalizar Pedido via WhatsApp
+                  <span>Prosseguir para Checkout</span>
+                  <ArrowRight className="h-5 w-5" />
                 </Button>
 
                 {items.length > 0 && (
