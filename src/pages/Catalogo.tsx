@@ -125,10 +125,10 @@ function PocketPerfumesSection({
               <Gem className="h-4 w-4" />
             </span>
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brand-brown/45">
-              Coleção secundária
+              Coleção de Bolso
             </p>
           </div>
-          <h2 className="text-lg font-semibold tracking-tight text-brand-brown">
+          <h2 className="font-heading text-xl font-semibold tracking-tight text-brand-brown">
             Perfumes de bolso 30ml
           </h2>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-brand-brown/55 sm:text-sm">
@@ -260,6 +260,9 @@ export default function Catalogo() {
       tipo: 'Todos',
       precoFaixa: 'Todos',
       ordenacao: 'Mais Vendidos',
+      familiaOlfativa: 'Todos',
+      ocasiao: 'Todos',
+      apenasDisponiveis: false,
     }
   );
   const previousFiltersRef = useRef(filters);
@@ -348,6 +351,11 @@ export default function Catalogo() {
       const matchesCategory = filters.categoria === 'Todos' || p.categoria === filters.categoria;
       const matchesTipo = filters.tipo === 'Todos' ||
         (filters.tipo === POCKET_COLLECTION_FILTER ? isPocketCollectionProduct(p) : p.tipo === filters.tipo);
+      const matchesStock = !filters.apenasDisponiveis || p.estoque > 0;
+      const matchesFamilia = filters.familiaOlfativa === 'Todos' ||
+        normalizeCatalogValue(p.familia_olfativa).includes(normalizeCatalogValue(filters.familiaOlfativa));
+      const matchesOcasiao = filters.ocasiao === 'Todos' ||
+        normalizeCatalogValue(p.ocasiao).includes(normalizeCatalogValue(filters.ocasiao));
 
       let matchesPrice = true;
       const preco = getProductSalePrice(p);
@@ -355,7 +363,7 @@ export default function Catalogo() {
       if (filters.precoFaixa === 'R$300 - R$600') matchesPrice = preco > 300 && preco <= 600;
       if (filters.precoFaixa === 'Acima de R$600') matchesPrice = preco > 600;
 
-      return matchesSearch && matchesCategory && matchesTipo && matchesPrice;
+      return matchesSearch && matchesCategory && matchesTipo && matchesStock && matchesFamilia && matchesOcasiao && matchesPrice;
     });
 
     return [...filtered].sort((a, b) => {
@@ -373,7 +381,7 @@ export default function Catalogo() {
 
       return a.nome.localeCompare(b.nome, 'pt-BR');
     });
-  }, [debouncedSearch, filters.categoria, filters.tipo, filters.precoFaixa, filters.ordenacao, products]);
+  }, [debouncedSearch, filters.categoria, filters.tipo, filters.precoFaixa, filters.ordenacao, filters.familiaOlfativa, filters.ocasiao, filters.apenasDisponiveis, products]);
 
   const favoriteProducts = useMemo(() => {
     return filteredProducts.filter(product => product.mais_vendido && product.estoque > 0);
@@ -440,15 +448,26 @@ export default function Catalogo() {
     }
   }, [currentPage, loading, totalPages]);
 
-  const clearFilters = () => setFilters({ ...filters, categoria: 'Todos', tipo: 'Todos', precoFaixa: 'Todos' });
+  const clearFilters = () => setFilters({
+    ...filters,
+    categoria: 'Todos',
+    tipo: 'Todos',
+    precoFaixa: 'Todos',
+    familiaOlfativa: 'Todos',
+    ocasiao: 'Todos',
+    apenasDisponiveis: false,
+  });
 
   const activeFilterChips = useMemo(() => {
-    const chips: Array<{ key: 'categoria' | 'tipo' | 'precoFaixa'; label: string }> = [];
-    if (filters.categoria !== 'Todos') chips.push({ key: 'categoria', label: filters.categoria });
-    if (filters.tipo !== 'Todos') chips.push({ key: 'tipo', label: filters.tipo });
-    if (filters.precoFaixa !== 'Todos') chips.push({ key: 'precoFaixa', label: filters.precoFaixa });
+    const chips: Array<{ key: keyof CatalogFilters; label: string; resetValue: string | boolean }> = [];
+    if (filters.categoria !== 'Todos') chips.push({ key: 'categoria', label: filters.categoria, resetValue: 'Todos' });
+    if (filters.tipo !== 'Todos') chips.push({ key: 'tipo', label: filters.tipo, resetValue: 'Todos' });
+    if (filters.precoFaixa !== 'Todos') chips.push({ key: 'precoFaixa', label: filters.precoFaixa, resetValue: 'Todos' });
+    if (filters.familiaOlfativa !== 'Todos') chips.push({ key: 'familiaOlfativa', label: filters.familiaOlfativa, resetValue: 'Todos' });
+    if (filters.ocasiao !== 'Todos') chips.push({ key: 'ocasiao', label: filters.ocasiao, resetValue: 'Todos' });
+    if (filters.apenasDisponiveis) chips.push({ key: 'apenasDisponiveis', label: 'Pronta Entrega', resetValue: false });
     return chips;
-  }, [filters.categoria, filters.tipo, filters.precoFaixa]);
+  }, [filters.categoria, filters.tipo, filters.precoFaixa, filters.familiaOlfativa, filters.ocasiao, filters.apenasDisponiveis]);
 
   const setFilterValue = <K extends keyof CatalogFilters>(key: K, value: CatalogFilters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -593,7 +612,7 @@ export default function Catalogo() {
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-56 lg:w-64 shrink-0">
           <div className="sticky top-8 bg-white p-6 rounded-2xl border border-brand-brown/5 shadow-card">
-            <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2 mb-6">
+            <h2 className="font-heading text-lg font-semibold text-brand-brown flex items-center gap-2 mb-6">
               <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
             </h2>
             <FilterPanel filters={filters} onChange={setFilterValue} onClear={clearFilters} />
@@ -619,7 +638,7 @@ export default function Catalogo() {
                 className="fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white shadow-2xl z-50 md:hidden flex flex-col"
               >
                 <div className="flex items-center justify-between p-6 border-b border-brand-brown/10 bg-brand-surface">
-                  <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2">
+                  <h2 className="font-heading text-lg font-semibold text-brand-brown flex items-center gap-2">
                     <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
                   </h2>
                   <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 -mr-2 bg-white rounded-full shadow-sm border border-brand-brown/5 text-brand-brown/50 hover:text-brand-brown">
@@ -675,28 +694,23 @@ export default function Catalogo() {
             </div>
           ) : (
             <div className="space-y-16">
-              <PocketPerfumesSection
-                products={pocketCollectionProducts}
-                onAddToCart={handleAddToCart}
-                onOpenProduct={handleOpenProduct}
-                onViewCollection={showPocketCollection}
-              />
-
-              {/* Seção Mais Vendidos - Apenas se Favoritos estiverem nos resultados filtrados */}
+              {/* Seção Mais Vendidos - Curadoria Nobre da Lumi */}
               {favoriteProducts.length > 0 && (
                 <section>
-                  <div className="flex items-center gap-2.5 mb-5">
-                    <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
-                      <Flame className="w-4 h-4 text-emerald-600" />
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200/80 shadow-sm">
+                      <Flame className="w-4 h-4 text-amber-700" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-brand-brown tracking-tight">Os Favoritos da Lumi</h2>
-                      <p className="text-brand-brown/50 text-xs">As fragrâncias mais desejadas.</p>
+                      <h2 className="font-heading text-xl sm:text-2xl font-semibold text-brand-brown tracking-tight">
+                        Os Favoritos da Lumi
+                      </h2>
+                      <p className="text-brand-brown/55 text-xs">Fragrâncias de alta fixação e presença marcante selecionadas para você.</p>
                     </div>
                   </div>
                   <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 gap-3 sm:gap-4 snap-x snap-mandatory scrollbar-hide">
                     {favoriteProducts.map(product => (
-                      <div key={`fav-${product.id}`} className="min-w-[160px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
+                      <div key={`fav-${product.id}`} className="min-w-[170px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
                         <ProductCard
                           product={product}
                           onAddToCart={handleAddToCart}
@@ -708,11 +722,19 @@ export default function Catalogo() {
                 </section>
               )}
 
+              {/* Coleção Pocket 30ml */}
+              <PocketPerfumesSection
+                products={pocketCollectionProducts}
+                onAddToCart={handleAddToCart}
+                onOpenProduct={handleOpenProduct}
+                onViewCollection={showPocketCollection}
+              />
+
               {/* Catálogo Completo */}
               <section id="catalogo" ref={catalogSectionRef} className="scroll-mt-32">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-brand-brown tracking-tight">
+                    <h2 className="font-heading text-xl sm:text-2xl font-semibold text-brand-brown tracking-tight">
                       Catálogo Completo
                     </h2>
                     <span className="text-xs text-brand-brown/50 font-medium">
@@ -726,14 +748,113 @@ export default function Catalogo() {
                   )}
                 </div>
 
+                {/* Barra de Filtros Rápidos de 1 Toque */}
+                <div className="mb-5 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, tipo: 'Todos', familiaOlfativa: 'Todos', apenasDisponiveis: false }))}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                      filters.tipo === 'Todos' && filters.familiaOlfativa === 'Todos' && !filters.apenasDisponiveis
+                        ? 'bg-brand-brown text-white shadow-sm'
+                        : 'border border-brand-brown/12 bg-white text-brand-brown hover:bg-brand-surface'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, tipo: prev.tipo === 'Árabe' ? 'Todos' : 'Árabe' }))}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 cursor-pointer ${
+                      filters.tipo === 'Árabe'
+                        ? 'bg-brand-brown text-white shadow-sm'
+                        : 'border border-brand-brown/12 bg-white text-brand-brown hover:bg-brand-surface'
+                    }`}
+                  >
+                    <span>👑</span>
+                    <span>Árabes</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, apenasDisponiveis: !prev.apenasDisponiveis }))}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 cursor-pointer ${
+                      filters.apenasDisponiveis
+                        ? 'bg-brand-brown text-white shadow-sm'
+                        : 'border border-brand-brown/12 bg-white text-brand-brown hover:bg-brand-surface'
+                    }`}
+                  >
+                    <span>📦</span>
+                    <span>Pronta Entrega</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, familiaOlfativa: prev.familiaOlfativa === 'Amadeirado' ? 'Todos' : 'Amadeirado' }))}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 cursor-pointer ${
+                      filters.familiaOlfativa === 'Amadeirado'
+                        ? 'bg-brand-brown text-white shadow-sm'
+                        : 'border border-brand-brown/12 bg-white text-brand-brown hover:bg-brand-surface'
+                    }`}
+                  >
+                    <span>🌲</span>
+                    <span>Amadeirados</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, familiaOlfativa: prev.familiaOlfativa === 'Oriental' ? 'Todos' : 'Oriental' }))}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 cursor-pointer ${
+                      filters.familiaOlfativa === 'Oriental'
+                        ? 'bg-brand-brown text-white shadow-sm'
+                        : 'border border-brand-brown/12 bg-white text-brand-brown hover:bg-brand-surface'
+                    }`}
+                  >
+                    <span>🌙</span>
+                    <span>Orientais</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, familiaOlfativa: prev.familiaOlfativa === 'Cítrico' ? 'Todos' : 'Cítrico' }))}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 cursor-pointer ${
+                      filters.familiaOlfativa === 'Cítrico'
+                        ? 'bg-brand-brown text-white shadow-sm'
+                        : 'border border-brand-brown/12 bg-white text-brand-brown hover:bg-brand-surface'
+                    }`}
+                  >
+                    <span>🍋</span>
+                    <span>Cítricos</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, familiaOlfativa: prev.familiaOlfativa === 'Floral' ? 'Todos' : 'Floral' }))}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 cursor-pointer ${
+                      filters.familiaOlfativa === 'Floral'
+                        ? 'bg-brand-brown text-white shadow-sm'
+                        : 'border border-brand-brown/12 bg-white text-brand-brown hover:bg-brand-surface'
+                    }`}
+                  >
+                    <span>🌸</span>
+                    <span>Florais</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, tipo: prev.tipo === POCKET_COLLECTION_FILTER ? 'Todos' : POCKET_COLLECTION_FILTER }))}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 cursor-pointer ${
+                      filters.tipo === POCKET_COLLECTION_FILTER
+                        ? 'bg-brand-brown text-white shadow-sm'
+                        : 'border border-brand-brown/12 bg-white text-brand-brown hover:bg-brand-surface'
+                    }`}
+                  >
+                    <span>👜</span>
+                    <span>Bolso 30ml</span>
+                  </button>
+                </div>
+
                 {activeFilterChips.length > 0 && (
                   <div className="mb-5 flex flex-wrap items-center gap-2">
                     {activeFilterChips.map(chip => (
                       <button
                         key={chip.key}
                         type="button"
-                        onClick={() => setFilterValue(chip.key, 'Todos')}
-                        className="group/chip flex items-center gap-1.5 rounded-full border border-brand-brown/15 bg-white px-3 py-1.5 text-xs font-semibold text-brand-brown shadow-card transition-colors hover:border-brand-brown/30 hover:bg-brand-surface"
+                        onClick={() => setFilterValue(chip.key, chip.resetValue as any)}
+                        className="group/chip flex items-center gap-1.5 rounded-full border border-brand-brown/15 bg-white px-3 py-1.5 text-xs font-semibold text-brand-brown shadow-card transition-colors hover:border-brand-brown/30 hover:bg-brand-surface cursor-pointer"
                       >
                         {chip.label}
                         <X className="h-3 w-3 text-brand-brown/40 transition-colors group-hover/chip:text-brand-brown" />
@@ -742,7 +863,7 @@ export default function Catalogo() {
                     <button
                       type="button"
                       onClick={clearFilters}
-                      className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-brand-brown/50 underline-offset-2 transition-colors hover:text-brand-brown hover:underline"
+                      className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-brand-brown/50 underline-offset-2 transition-colors hover:text-brand-brown hover:underline cursor-pointer"
                     >
                       Limpar tudo
                     </button>
