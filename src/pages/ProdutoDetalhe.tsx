@@ -395,7 +395,7 @@ export default function ProdutoDetalhe() {
                   </>
                 )}
               </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-brown leading-tight tracking-tight mb-4">
+              <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold text-brand-brown leading-tight tracking-tight mb-4">
                 {product.nome}
               </h1>
 
@@ -461,7 +461,7 @@ export default function ProdutoDetalhe() {
                 }`}
               >
                 <ShoppingBag className="w-6 h-6" /> 
-                {outOfStock ? 'Indisponível no momento' : reachedStockLimit ? 'Quantidade máxima no carrinho' : 'Adicionar ao Carrinho'}
+                {outOfStock ? 'Indisponível no momento' : reachedStockLimit ? 'Quantidade máxima na sacola' : 'Adicionar à Sacola'}
               </Button>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -490,7 +490,7 @@ export default function ProdutoDetalhe() {
               {/* A Experiência */}
               {product.descricao_ia && (
                 <section>
-                  <h3 className="uppercase tracking-[0.2em] text-xs font-bold text-brand-brown/40 mb-6">A Experiência</h3>
+                  <h3 className="font-heading text-xl font-semibold text-brand-brown mb-4">A Experiência</h3>
                   <p className="text-brand-brown/80 leading-relaxed text-lg italic border-l-2 border-brand-brown/20 pl-6">
                     "{product.descricao_ia}"
                   </p>
@@ -500,7 +500,7 @@ export default function ProdutoDetalhe() {
               {/* Pirâmide Olfativa Visual */}
               {(product.notas_topo || product.notas_coracao || product.notas_fundo) && (
                 <section>
-                  <h3 className="uppercase tracking-[0.2em] text-xs font-bold text-brand-brown/40 mb-8">Pirâmide Olfativa</h3>
+                  <h3 className="font-heading text-xl font-semibold text-brand-brown mb-6">Pirâmide Olfativa</h3>
                   <div className="flex flex-col gap-8 bg-white border border-brand-brown/5 rounded-2xl p-8 shadow-card">
                     
                     {product.notas_topo && (
@@ -554,7 +554,7 @@ export default function ProdutoDetalhe() {
                 <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brand-brown/40">
                   Seleção Lumi
                 </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-brand-brown">
+                <h2 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-brand-brown">
                   Você também pode gostar
                 </h2>
               </div>

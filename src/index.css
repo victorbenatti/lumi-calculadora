@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/600.css";
+@import "@fontsource/playfair-display/700.css";
+@import "@fontsource/playfair-display/400-italic.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -18,9 +22,10 @@
   --color-brand-deep: #2a1d15;      /* tinta em hover / ênfase */
   --color-brand-sand: #f3ede4;      /* apoio quente (chips, divisores) */
 
-  /* Tipografia — Geist como única família */
+  /* Tipografia — Playfair Display para títulos/luxo e Geist para dados e texto */
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Playfair Display", Georgia, Cambria, serif;
+  --font-serif: "Playfair Display", Georgia, Cambria, serif;
 
   /* Sombras — escala única para todo o app */
   --shadow-card: 0 1px 2px rgba(61, 43, 31, 0.04), 0 6px 20px -8px rgba(61, 43, 31, 0.07);

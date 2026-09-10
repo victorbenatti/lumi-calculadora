@@ -125,10 +125,10 @@ function PocketPerfumesSection({
               <Gem className="h-4 w-4" />
             </span>
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brand-brown/45">
-              Coleção secundária
+              Coleção de Bolso
             </p>
           </div>
-          <h2 className="text-lg font-semibold tracking-tight text-brand-brown">
+          <h2 className="font-heading text-xl font-semibold tracking-tight text-brand-brown">
             Perfumes de bolso 30ml
           </h2>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-brand-brown/55 sm:text-sm">
@@ -593,7 +593,7 @@ export default function Catalogo() {
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-56 lg:w-64 shrink-0">
           <div className="sticky top-8 bg-white p-6 rounded-2xl border border-brand-brown/5 shadow-card">
-            <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2 mb-6">
+            <h2 className="font-heading text-lg font-semibold text-brand-brown flex items-center gap-2 mb-6">
               <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
             </h2>
             <FilterPanel filters={filters} onChange={setFilterValue} onClear={clearFilters} />
@@ -619,7 +619,7 @@ export default function Catalogo() {
                 className="fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white shadow-2xl z-50 md:hidden flex flex-col"
               >
                 <div className="flex items-center justify-between p-6 border-b border-brand-brown/10 bg-brand-surface">
-                  <h2 className="text-lg font-semibold text-brand-brown flex items-center gap-2">
+                  <h2 className="font-heading text-lg font-semibold text-brand-brown flex items-center gap-2">
                     <Filter className="w-5 h-5 text-brand-brown/50" /> Filtros
                   </h2>
                   <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 -mr-2 bg-white rounded-full shadow-sm border border-brand-brown/5 text-brand-brown/50 hover:text-brand-brown">
@@ -675,28 +675,23 @@ export default function Catalogo() {
             </div>
           ) : (
             <div className="space-y-16">
-              <PocketPerfumesSection
-                products={pocketCollectionProducts}
-                onAddToCart={handleAddToCart}
-                onOpenProduct={handleOpenProduct}
-                onViewCollection={showPocketCollection}
-              />
-
-              {/* Seção Mais Vendidos - Apenas se Favoritos estiverem nos resultados filtrados */}
+              {/* Seção Mais Vendidos - Curadoria Nobre da Lumi */}
               {favoriteProducts.length > 0 && (
                 <section>
-                  <div className="flex items-center gap-2.5 mb-5">
-                    <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
-                      <Flame className="w-4 h-4 text-emerald-600" />
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200/80 shadow-sm">
+                      <Flame className="w-4 h-4 text-amber-700" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-brand-brown tracking-tight">Os Favoritos da Lumi</h2>
-                      <p className="text-brand-brown/50 text-xs">As fragrâncias mais desejadas.</p>
+                      <h2 className="font-heading text-xl sm:text-2xl font-semibold text-brand-brown tracking-tight">
+                        Os Favoritos da Lumi
+                      </h2>
+                      <p className="text-brand-brown/55 text-xs">Fragrâncias de alta fixação e presença marcante selecionadas para você.</p>
                     </div>
                   </div>
                   <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 gap-3 sm:gap-4 snap-x snap-mandatory scrollbar-hide">
                     {favoriteProducts.map(product => (
-                      <div key={`fav-${product.id}`} className="min-w-[160px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
+                      <div key={`fav-${product.id}`} className="min-w-[170px] sm:min-w-[220px] max-w-[220px] snap-center shrink-0">
                         <ProductCard
                           product={product}
                           onAddToCart={handleAddToCart}
@@ -708,11 +703,19 @@ export default function Catalogo() {
                 </section>
               )}
 
+              {/* Coleção Pocket 30ml */}
+              <PocketPerfumesSection
+                products={pocketCollectionProducts}
+                onAddToCart={handleAddToCart}
+                onOpenProduct={handleOpenProduct}
+                onViewCollection={showPocketCollection}
+              />
+
               {/* Catálogo Completo */}
               <section id="catalogo" ref={catalogSectionRef} className="scroll-mt-32">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-brand-brown tracking-tight">
+                    <h2 className="font-heading text-xl sm:text-2xl font-semibold text-brand-brown tracking-tight">
                       Catálogo Completo
                     </h2>
                     <span className="text-xs text-brand-brown/50 font-medium">

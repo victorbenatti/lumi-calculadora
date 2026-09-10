@@ -312,13 +312,13 @@ export function Header({ searchValue, onSearchChange, onOpenCategories }: Header
             type="button"
             onClick={openCart}
             className="relative h-10 rounded-full bg-brand-brown px-3 text-white hover:bg-brand-deep md:px-4"
-            aria-label="Abrir carrinho"
-            title="Carrinho"
+            aria-label="Abrir sacola"
+            title="Sacola"
           >
             <ShoppingBag className="h-4 w-4" />
-            <span className="hidden text-xs font-bold sm:inline">Carrinho</span>
+            <span className="hidden text-xs font-bold sm:inline">Sacola</span>
             {totalItems > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-700 px-1 text-[10px] font-bold text-white ring-2 ring-white">
                 {totalItems}
               </span>
             )}

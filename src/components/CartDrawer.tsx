@@ -26,7 +26,7 @@ export function CartDrawer() {
         aria-label="Abrir carrinho"
       >
         <ShoppingBag className="w-5 h-5" />
-        <span className="text-sm font-bold">Carrinho</span>
+        <span className="text-sm font-bold">Sacola</span>
         {totalItems > 0 && (
           <span className="ml-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-white px-2 text-xs font-bold text-brand-brown">
             {totalItems}
@@ -50,21 +50,21 @@ export function CartDrawer() {
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 220 }}
               className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl"
-              aria-label="Carrinho de compras"
+              aria-label="Sacola de compras"
             >
               <div className="flex items-center justify-between border-b border-brand-brown/10 bg-brand-surface px-5 py-5">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brand-brown/40">
-                    Carrinho de Zap
+                    Seleção Exclusiva
                   </p>
-                  <h2 className="text-xl font-semibold text-brand-brown">
-                    Sua seleção Lumi
+                  <h2 className="font-heading text-xl font-semibold text-brand-brown">
+                    Sua Sacola Lumi
                   </h2>
                 </div>
                 <button
                   onClick={closeCart}
                   className="rounded-full border border-brand-brown/10 bg-white p-2 text-brand-brown/50 shadow-sm transition-colors hover:text-brand-brown"
-                  aria-label="Fechar carrinho"
+                  aria-label="Fechar sacola"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -76,18 +76,18 @@ export function CartDrawer() {
                     <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-brand-sand/50">
                       <ShoppingBag className="h-8 w-8 text-brand-brown/20" />
                     </div>
-                    <h3 className="text-xl font-light text-brand-brown">
-                      Seu carrinho está vazio
+                    <h3 className="font-heading text-xl font-light text-brand-brown">
+                      Sua sacola está vazia
                     </h3>
                     <p className="mt-2 max-w-xs text-sm font-light leading-relaxed text-brand-brown/50">
-                      Escolha suas fragrâncias favoritas e finalize direto pelo WhatsApp.
+                      Escolha suas fragrâncias favoritas e finalize o atendimento direto pelo WhatsApp.
                     </p>
                     <Button
                       onClick={closeCart}
                       variant="outline"
                       className="mt-7 h-11 rounded-full border-brand-brown/20 px-6 text-brand-brown hover:bg-brand-surface"
                     >
-                      Continuar comprando
+                      Explorar fragrâncias
                     </Button>
                   </div>
                 ) : (
@@ -180,7 +180,7 @@ export function CartDrawer() {
                       Total estimado
                     </p>
                     <p className="text-sm text-brand-brown/50">
-                      Estoque reservado só após confirmação.
+                      Reserva confirmada no atendimento.
                     </p>
                   </div>
                   <strong className="text-2xl text-brand-brown">
@@ -193,7 +193,7 @@ export function CartDrawer() {
                   disabled={items.length === 0}
                   className="h-14 w-full rounded-2xl bg-brand-brown text-base font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-brand-deep hover:shadow-xl disabled:translate-y-0 disabled:bg-brand-sand disabled:text-brand-brown/40 disabled:shadow-none"
                 >
-                  Finalizar pelo WhatsApp
+                  Finalizar Pedido via WhatsApp
                 </Button>
 
                 {items.length > 0 && (
@@ -203,14 +203,14 @@ export function CartDrawer() {
                       variant="outline"
                       className="h-11 rounded-xl border-brand-brown/15 text-brand-brown hover:bg-brand-surface"
                     >
-                      Continuar comprando
+                      Continuar navegando
                     </Button>
                     <Button
                       onClick={clearCart}
                       variant="ghost"
-                      className="h-11 rounded-xl text-brand-brown/55 hover:bg-red-50 hover:text-red-800"
+                      className="h-11 rounded-xl text-brand-brown/55 hover:bg-rose-50 hover:text-rose-900"
                     >
-                      Limpar carrinho
+                      Limpar sacola
                     </Button>
                   </div>
                 )}

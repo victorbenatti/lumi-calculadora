@@ -147,19 +147,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const checkoutWhatsApp = () => {
     if (items.length === 0) return;
 
-    const lines = items.map((item) => {
-      const quantityText = `${item.quantity}x ${item.nome}`;
-      const priceText = item.quantity > 1
-        ? `${formatBRL(item.price)} cada`
-        : formatBRL(item.price);
+    const itemsText = items.map((item) => {
+      const unitText = item.quantity > 1 ? ` (${formatBRL(item.price)} un.)` : '';
+      return `• ${item.quantity}x *${item.nome}* — ${formatBRL(item.price * item.quantity)}${unitText}`;
+    }).join('\n');
 
-      return `${quantityText} - ${priceText}`;
-    });
+    const message = [
+      '✨ *NOVO PEDIDO | LUMI IMPORTS* ✨',
+      '━━━━━━━━━━━━━━━━━━━━━━',
+      '🛍️ *Fragrâncias Selecionadas:*',
+      itemsText,
+      '━━━━━━━━━━━━━━━━━━━━━━',
+      `💰 *Subtotal Estimado:* ${formatBRL(totalPrice)}`,
+      '',
+      '📍 *Dados para Envio & Atendimento:*',
+      '• *Nome completo:* ',
+      '• *CEP / Cidade:* ',
+      '• *Forma de pagamento preferida (Pix / Cartão até 12x):* ',
+      '',
+      '_Olá! Gostaria de confirmar a disponibilidade dos itens e fechar meu pedido com a Lumi._ ✨',
+    ].join('\n');
 
-    const text = encodeURIComponent(
-      `Olá! Quero os itens:\n${lines.join('\n')}\nTotal: ${formatBRL(totalPrice)}\n\nValores sujeitos à confirmação de disponibilidade.`
-    );
-
+    const text = encodeURIComponent(message);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank');
   };
 
