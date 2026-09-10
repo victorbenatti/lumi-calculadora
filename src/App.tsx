@@ -5,6 +5,7 @@ import { Analytics } from './components/Analytics';
 import { CartDrawer } from './components/CartDrawer';
 import { Footer } from './components/Footer';
 import { CartProvider } from './contexts/CartContext';
+import { InstallPwaPrompt } from './components/InstallPwaPrompt';
 import { getAllCampaigns } from './campaigns';
 import { getPendingCatalogNavigation } from './utils/catalogNavigation';
 
@@ -44,6 +45,7 @@ function App() {
   const isAdminArea = location.pathname.startsWith('/admin') || location.pathname === '/login';
   const showFooter = !isAdminArea;
   const showCart = !isAdminArea;
+  const showPwaPrompt = !isAdminArea;
 
   return (
     <CartProvider>
@@ -60,7 +62,7 @@ function App() {
                 <Admin />
               </ProtectedRoute>
             } 
-          />
+            />
           <Route path="/catalogo" element={<Catalogo />} />
           {getAllCampaigns().map((c) =>
             c.ativa ? (
@@ -74,6 +76,7 @@ function App() {
       </Suspense>
       {showFooter && <Footer />}
       {showCart && <CartDrawer />}
+      {showPwaPrompt && <InstallPwaPrompt />}
     </CartProvider>
   );
 }
