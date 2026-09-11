@@ -27,8 +27,12 @@ create table if not exists public.pedidos (
   total numeric not null check (total >= 0),
   status text not null default 'aguardando_confirmacao' check (status in ('aguardando_confirmacao', 'pago', 'enviado', 'cancelado')),
   observacoes text,
-  origem text not null default 'checkout_express'
+  origem text not null default 'checkout_express',
+  lancado_erp boolean not null default false
 );
+
+-- Garantir coluna caso tabela já tenha sido criada previamente
+alter table public.pedidos add column if not exists lancado_erp boolean not null default false;
 
 -- 3. Tabela de Itens do Pedido
 create table if not exists public.itens_pedido (

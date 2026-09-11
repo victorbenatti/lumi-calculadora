@@ -314,6 +314,7 @@ export interface Database {
           status: 'aguardando_confirmacao' | 'pago' | 'enviado' | 'cancelado'
           observacoes: string | null
           origem: string
+          lancado_erp: boolean
         }
         Insert: {
           id?: string
@@ -336,6 +337,7 @@ export interface Database {
           status?: 'aguardando_confirmacao' | 'pago' | 'enviado' | 'cancelado'
           observacoes?: string | null
           origem?: string
+          lancado_erp?: boolean
         }
         Update: {
           id?: string
@@ -358,6 +360,7 @@ export interface Database {
           status?: 'aguardando_confirmacao' | 'pago' | 'enviado' | 'cancelado'
           observacoes?: string | null
           origem?: string
+          lancado_erp?: boolean
         }
         Relationships: []
       }

@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
+  CheckCheck,
+  CheckCircle2,
   ExternalLink,
   Loader2,
   MapPin,
@@ -8,12 +10,18 @@ import {
   RefreshCw,
   Search,
   ShoppingBag,
+  TrendingUp,
   Truck,
   X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
 import { formatCurrency } from '../utils/parsing';
+import {
+  calculateSaleFinancials,
+  DEFAULT_FINANCIAL_CONFIG,
+  type FinancialConfig,
+} from '../utils/finance';
 import { Button } from './ui/Button';
 import { Card, CardContent } from './ui/Card';
 import { Input } from './ui/Input';
@@ -21,6 +29,7 @@ import { Input } from './ui/Input';
 type Order = Database['public']['Tables']['pedidos']['Row'];
 type OrderItem = Database['public']['Tables']['itens_pedido']['Row'];
 type OrderStatus = Order['status'];
+type Product = Database['public']['Tables']['produtos']['Row'];
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   aguardando_confirmacao: 'Aguardando Confirmação',
@@ -52,12 +61,23 @@ const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string; border: str
   },
 };
 
-export function OrdersManagement() {
+interface Props {
+  products?: Product[];
+  financialConfig?: FinancialConfig;
+  onSuccessSync?: () => void;
+}
+
+export function OrdersManagement({
+  products = [],
+  financialConfig = DEFAULT_FINANCIAL_CONFIG,
+  onSuccessSync,
+}: Props) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | OrderStatus>('todos');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
 
   // Modal de Detalhes
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -135,6 +155,153 @@ export function OrdersManagement() {
       setSelectedItems([]);
     } finally {
       setLoadingItems(false);
+    }
+  };
+
+  // Integração Pedido ➔ ERP com 1 Clique (Baixa de Estoque + Vendas Financeiras)
+  const handleLaunchToERP = async (order: Order, preloadedItems?: OrderItem[]) => {
+    let items = preloadedItems;
+
+    if (!items || items.length === 0) {
+      setSyncingId(order.id);
+      const { data: fetchedItems, error: itemsErr } = await supabase
+        .from('itens_pedido')
+        .select('*')
+        .eq('pedido_id', order.id);
+
+      if (itemsErr || !fetchedItems || fetchedItems.length === 0) {
+        setSyncingId(null);
+        alert('Não foi possível carregar os itens deste pedido para lançamento no ERP.');
+        return;
+      }
+      items = fetchedItems;
+    }
+
+    const totalQty = items.reduce((s, i) => s + i.quantidade, 0);
+    const confirmMessage =
+      `Deseja aprovar e lançar o pedido ${order.codigo} no ERP?\n\n` +
+      `Cliente: ${order.cliente_nome}\n` +
+      `Total: ${formatCurrency(Number(order.total))}\n` +
+      `Quantidade de Itens: ${totalQty} un.\n\n` +
+      `Esta ação irá:\n` +
+      `1. Abater automaticamente o estoque dos produtos no catálogo\n` +
+      `2. Gerar o registro de vendas com cálculo de reposição e lucro no financeiro\n` +
+      `3. Marcar o pedido como Pago e Lançado no ERP.`;
+
+    if (!window.confirm(confirmMessage)) {
+      setSyncingId(null);
+      return;
+    }
+
+    setSyncingId(order.id);
+
+    try {
+      const salesRowsToInsert: Array<Database['public']['Tables']['vendas']['Insert']> = [];
+      const discountRatio =
+        Number(order.desconto || 0) > 0 && Number(order.subtotal || 0) > 0
+          ? Number(order.desconto) / Number(order.subtotal)
+          : 0;
+
+      for (const item of items) {
+        if (!item.produto_id) continue;
+
+        // Buscar dados mais recentes do produto no banco
+        const { data: prodData, error: prodErr } = await supabase
+          .from('produtos')
+          .select('id, nome, estoque, custo_final_brl')
+          .eq('id', item.produto_id)
+          .single();
+
+        if (prodErr || !prodData) {
+          throw new Error(`Produto "${item.nome_produto}" não foi localizado no catálogo.`);
+        }
+
+        const qty = item.quantidade;
+        if (prodData.estoque < qty) {
+          const continueWithNegative = window.confirm(
+            `Atenção: Estoque de "${prodData.nome}" está em ${prodData.estoque} un., menor que os ${qty} un. do pedido.\n\nDeseja continuar mesmo assim (o estoque ficará zerado)?`
+          );
+          if (!continueWithNegative) {
+            throw new Error('Operação cancelada pelo usuário devido ao estoque insuficiente.');
+          }
+        }
+
+        const newStock = Math.max(0, prodData.estoque - qty);
+
+        // Atualizar estoque no catálogo
+        const { error: updateStockErr } = await supabase
+          .from('produtos')
+          .update({ estoque: newStock })
+          .eq('id', item.produto_id);
+
+        if (updateStockErr) {
+          throw new Error(`Falha ao baixar estoque de "${prodData.nome}": ${updateStockErr.message}`);
+        }
+
+        // Preço líquido unitário (considerando proporção de desconto Pix, se aplicável)
+        const unitBasePrice = Number(item.preco_unitario);
+        const effectiveUnitPrice = Math.round(unitBasePrice * (1 - discountRatio) * 100) / 100;
+        const financialSnapshot = calculateSaleFinancials(
+          effectiveUnitPrice,
+          prodData.custo_final_brl || 0,
+          financialConfig
+        );
+
+        for (let i = 0; i < qty; i++) {
+          salesRowsToInsert.push({
+            produto_id: item.produto_id,
+            cliente: `${order.cliente_nome} (${order.codigo})`,
+            preco_venda: effectiveUnitPrice,
+            status_pagamento: 'pago',
+            data_venda: new Date().toISOString(),
+            ...financialSnapshot,
+            financeiro_estimado: false,
+          });
+        }
+      }
+
+      // Gravar vendas no banco
+      if (salesRowsToInsert.length > 0) {
+        const { error: salesErr } = await supabase.from('vendas').insert(salesRowsToInsert);
+        if (salesErr) {
+          throw new Error(`Falha ao registrar vendas no financeiro: ${salesErr.message}`);
+        }
+      }
+
+      // Marcar pedido como Pago e Lançado no ERP
+      const { error: updateOrderErr } = await supabase
+        .from('pedidos')
+        .update({
+          status: 'pago',
+          lancado_erp: true,
+        })
+        .eq('id', order.id);
+
+      if (updateOrderErr) {
+        console.warn('Aviso ao atualizar flags do pedido:', updateOrderErr);
+      }
+
+      // Atualizar estado local
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === order.id ? { ...o, status: 'pago', lancado_erp: true } : o
+        )
+      );
+
+      if (selectedOrder && selectedOrder.id === order.id) {
+        setSelectedOrder((prev) => (prev ? { ...prev, status: 'pago', lancado_erp: true } : null));
+      }
+
+      // Disparar sincronização do ERP para atualizar Dashboard, Estoque e Vendas imediatamente
+      onSuccessSync?.();
+
+      alert(`✅ Pedido ${order.codigo} lançado com sucesso no ERP!\n\n${totalQty} unidade(s) abatida(s) do estoque e lançadas no financeiro.`);
+    } catch (err: unknown) {
+      console.error('Erro ao lançar pedido no ERP:', err);
+      const msg = err instanceof Error ? err.message : 'Falha inesperada ao sincronizar.';
+      alert('Não foi possível lançar no ERP: ' + msg);
+    } finally {
+      setSyncingId(null);
     }
   };
 
@@ -291,6 +458,7 @@ export function OrdersManagement() {
                   <th className="px-4 py-3 font-semibold">Pagamento</th>
                   <th className="px-4 py-3 font-semibold">Total</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">ERP / Estoque</th>
                   <th className="px-4 py-3 font-semibold text-right">Ações</th>
                 </tr>
               </thead>
@@ -305,6 +473,7 @@ export function OrdersManagement() {
                     hour: '2-digit',
                     minute: '2-digit',
                   });
+                  const isSyncing = syncingId === order.id;
 
                   return (
                     <tr key={order.id} className="hover:bg-brand-surface/60 transition-colors">
@@ -360,7 +529,7 @@ export function OrdersManagement() {
                       <td className="px-4 py-3">
                         <select
                           value={order.status}
-                          disabled={updatingId === order.id}
+                          disabled={updatingId === order.id || isSyncing}
                           onChange={(e) => handleUpdateStatus(order.id, e.target.value as OrderStatus)}
                           className={`rounded-full border px-2.5 py-1 text-[11px] font-bold outline-none transition-colors cursor-pointer ${style.bg} ${style.text} ${style.border}`}
                         >
@@ -369,6 +538,31 @@ export function OrdersManagement() {
                           <option value="enviado">Enviado</option>
                           <option value="cancelado">Cancelado</option>
                         </select>
+                      </td>
+
+                      {/* Botão de Lançar no ERP ou Badge de Concluído */}
+                      <td className="px-4 py-3">
+                        {order.lancado_erp ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                            <CheckCheck className="h-3 w-3" />
+                            No ERP
+                          </span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            disabled={isSyncing}
+                            onClick={() => handleLaunchToERP(order)}
+                            className="h-7 rounded-lg bg-brand-brown px-2.5 text-[11px] font-bold text-white shadow-sm hover:bg-brand-deep flex items-center gap-1"
+                            title="Aprovar, baixar estoque e registrar vendas"
+                          >
+                            {isSyncing ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <TrendingUp className="h-3 w-3" />
+                            )}
+                            Lançar ERP
+                          </Button>
+                        )}
                       </td>
 
                       <td className="px-4 py-3 text-right">
@@ -404,15 +598,23 @@ export function OrdersManagement() {
       {/* Modal de Detalhes do Pedido */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-brown/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-3xl border border-brand-brown/10 bg-white p-6 shadow-overlay">
+          <div className="w-full max-w-lg rounded-3xl border border-brand-brown/10 bg-white p-6 shadow-overlay max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-brand-brown/10 pb-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-brand-brown/40">
                   Detalhes do Pedido
                 </p>
-                <h3 className="font-heading text-xl font-bold text-brand-brown">
-                  {selectedOrder.codigo}
-                </h3>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <h3 className="font-heading text-xl font-bold text-brand-brown">
+                    {selectedOrder.codigo}
+                  </h3>
+                  {selectedOrder.lancado_erp && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                      <CheckCheck className="h-3 w-3" />
+                      Lançado no ERP
+                    </span>
+                  )}
+                </div>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
@@ -480,28 +682,36 @@ export function OrdersManagement() {
                 <p className="text-xs text-brand-brown/50 italic">Itens não detalhados.</p>
               ) : (
                 <div className="max-h-48 overflow-y-auto space-y-2 divide-y divide-brand-brown/5 text-xs">
-                  {selectedItems.map((item) => (
-                    <div key={item.id} className="pt-2 first:pt-0 flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-10 w-8 shrink-0 overflow-hidden rounded bg-brand-surface border border-brand-brown/10 flex items-center justify-center">
-                          {item.imagem_url ? (
-                            <img src={item.imagem_url} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <Package className="h-4 w-4 text-brand-brown/20" />
-                          )}
+                  {selectedItems.map((item) => {
+                    const catalogProduct = products.find((p) => p.id === item.produto_id);
+                    return (
+                      <div key={item.id} className="pt-2 first:pt-0 flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="h-10 w-8 shrink-0 overflow-hidden rounded bg-brand-surface border border-brand-brown/10 flex items-center justify-center">
+                            {item.imagem_url ? (
+                              <img src={item.imagem_url} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <Package className="h-4 w-4 text-brand-brown/20" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-brand-brown">{item.nome_produto}</p>
+                            <p className="text-[10px] text-brand-brown/50">
+                              {item.quantidade}x {formatCurrency(Number(item.preco_unitario))}
+                              {catalogProduct && (
+                                <span className="ml-1 text-brand-brown/40">
+                                  (Estoque atual: {catalogProduct.estoque} un.)
+                                </span>
+                              )}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-brand-brown">{item.nome_produto}</p>
-                          <p className="text-[10px] text-brand-brown/50">
-                            {item.quantidade}x {formatCurrency(Number(item.preco_unitario))}
-                          </p>
-                        </div>
+                        <span className="font-bold text-brand-brown">
+                          {formatCurrency(Number(item.preco_total))}
+                        </span>
                       </div>
-                      <span className="font-bold text-brand-brown">
-                        {formatCurrency(Number(item.preco_total))}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -524,7 +734,29 @@ export function OrdersManagement() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            {/* Ações do Modal */}
+            <div className="mt-6 flex items-center justify-between gap-3 border-t border-brand-brown/10 pt-4">
+              {selectedOrder.lancado_erp ? (
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Lançado no ERP e Estoque baixado</span>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  disabled={syncingId === selectedOrder.id}
+                  onClick={() => handleLaunchToERP(selectedOrder, selectedItems)}
+                  className="rounded-xl bg-emerald-700 px-4 text-xs font-bold text-white shadow-sm hover:bg-emerald-800 flex items-center gap-1.5"
+                >
+                  {syncingId === selectedOrder.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <TrendingUp className="h-3.5 w-3.5" />
+                  )}
+                  Aprovar & Lançar no ERP
+                </Button>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"

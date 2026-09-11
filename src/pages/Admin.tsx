@@ -162,7 +162,13 @@ export default function Admin() {
           <DashboardOverview sales={sales} products={products} trips={trips} financialConfig={activeFinancialConfig} />
         </div>
       )}
-      {activeTab === 'orders' && <OrdersManagement />}
+      {activeTab === 'orders' && (
+        <OrdersManagement
+          products={products}
+          financialConfig={activeFinancialConfig}
+          onSuccessSync={refetchERP}
+        />
+      )}
       {activeTab === 'trips' && <TripManagement trips={trips} refetch={refetchERP} exchangeRate={rate} />}
       {activeTab === 'inventory' && <Inventory trips={trips} products={products} refetch={refetchERP} />}
       {activeTab === 'sales' && (

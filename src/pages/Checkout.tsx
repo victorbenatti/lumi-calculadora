@@ -253,6 +253,7 @@ export default function Checkout() {
           status: 'aguardando_confirmacao',
           observacoes: observacoes.trim() || null,
           origem: 'checkout_express',
+          lancado_erp: false,
         };
       } else {
         finalOrder = orderData;
